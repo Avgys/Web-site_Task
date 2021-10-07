@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
+using AdminApi.Models;
 
 namespace Cars
 {
@@ -22,6 +24,8 @@ namespace Cars
         {
             services.AddControllersWithViews();
             // In production, the Angular files will be served from this directory
+
+            services.AddDbContext<EFAdminDBContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
