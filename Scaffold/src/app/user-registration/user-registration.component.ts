@@ -1,15 +1,21 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Location } from '@angular/common';
-import { HeroService } from '../hero.service';
-import { Hero } from '../hero'
+import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-hero-detail',
-  templateUrl: './hero-detail.component.html',
-  styleUrls: ['./hero-detail.component.css']
+  selector: 'app-user-registration',
+  templateUrl: './user-registration.component.html',
+  styleUrls: ['./user-registration.component.css']
 })
-export class HeroDetailComponent implements OnInit {
+export class UserRegistrationComponent implements OnInit {
+
+  constructor() { }
+
+  ngOnInit() {
+  }
+
+}
+
+
+/*export class HeroDetailComponent implements OnInit {
 
   hero?: Hero;
   constructor(private route: ActivatedRoute,
@@ -36,3 +42,4 @@ export class HeroDetailComponent implements OnInit {
   }
 
 }
+*/

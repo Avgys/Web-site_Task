@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using DBRepository;
 
-namespace AdminApi.Models
+namespace AdminApi
 {
     public class EFAdminDBContext : DbContext, IDBContext<AdminAccount>
     {
