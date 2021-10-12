@@ -70,7 +70,7 @@ namespace Cars
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller}/{action=Index}/{id?}");
+                    pattern: "{controller}/{action}/{id?}");
             });
 
             app.UseSpa(spa =>
