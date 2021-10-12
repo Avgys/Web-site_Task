@@ -4,6 +4,8 @@ using DBRepository;
 
 namespace UserApi
 {
+    using Models;
+
     public class EFUserDBContext : DbContext, IDBContext<UserAccount>
     {
         private static bool isCreated = false;

@@ -4,6 +4,7 @@ using DBRepository;
 
 namespace AdminApi
 {
+    using Models;
     public class EFAdminDBContext : DbContext, IDBContext<AdminAccount>
     {
         private static bool isCreated = false;

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AdminApi
+namespace AdminApi.Models
 {
 	public class AdminAccount
 	{

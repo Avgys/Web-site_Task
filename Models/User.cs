@@ -1,6 +1,6 @@
 using System;
 
-namespace UserApi
+namespace UserApi.Models
 {
 	public class UserAccount
 	{
