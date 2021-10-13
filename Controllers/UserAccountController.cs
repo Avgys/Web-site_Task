@@ -10,6 +10,7 @@ using UserApi.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Cars.Controllers
 {
@@ -106,26 +107,43 @@ namespace Cars.Controllers
             return NoContent();
         }
 
-        //GET: api/UserAccount
+        ////GET: api/UserAccount
+        //[HttpGet({id})]
+        //public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts(int id)
+        //{
+        //    return await _context.UserAccounts.ToListAsync();
+        //}
+
+        // GET: api/UserAccount
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts()
+        [Authorize]
+        public async Task<ActionResult<UserAccount>> GetUserAccount()
         {
-            return await _context.UserAccounts.ToListAsync();
+            //var userAccount = await _context.UserAccounts.FindAsync(id);
+            var userAccount = await _context.UserAccounts.FindAsync(HttpContext.User.Identity.Name);
+
+            if (userAccount == null)
+            {
+                return NotFound();
+            }
+
+            return userAccount;
         }
 
-        // GET: api/UserAccount/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<UserAccount>> GetUserAccount(int id)
-        //{
-        //    var userAccount = await _context.UserAccounts.FindAsync(id);
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult<UserAccount>> NoAuthenticated()
+        {
+            //var userAccount = await _context.UserAccounts.FindAsync(id);
+            //var userAccount = await _context.UserAccounts.FindAsync(HttpContext.User.Identity.Name);
 
-        //    if (userAccount == null)
-        //    {
-        //        return NotFound();
-        //    }
+            //if (userAccount == null)
+            //{
+            //    return ();
+            //}
 
-        //    return userAccount;
-        //}
+            return NoContent();
+        }
 
         // PUT: api/UserAccount/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

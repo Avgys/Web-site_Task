@@ -16,8 +16,10 @@ export class AccountService {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
 
-    private usersRegisterUrl = `${environment.apiUrl}` + '/api/users/register';
-    private usersLoginUrl = `${environment.apiUrl}` + '/api/users/login';
+    private environmetUrl = `${environment.apiUrl}` + '/api/users/';
+    private usersRegisterUrl = this.environmetUrl + 'register';
+    private usersLoginUrl = this.environmetUrl + 'login';    
+    private usersLogoutUrl = this.environmetUrl + 'logout';
 
 
     private userSubject: BehaviorSubject<User>;
@@ -45,7 +47,8 @@ export class AccountService {
         }    
     }
 
-    public get userValue(): User {
+    public get userValue() {
+        this.updateUserValue();
         return this.userSubject.value;
     }
 
@@ -65,10 +68,14 @@ export class AccountService {
     }
 
     logout() {
-        // remove user from local storage and set current user to null
+        // remove user from local storage and set current user to guest
         // localStorage.removeItem('user');
-        // this.userSubject.next(null);
-        // this.router.navigate(['/account/login']);
+        this.userSubject.next(this.guest);
+        this.router.navigate(['/account/login']);
+        return this.http.post<User>(this.usersLogoutUrl, null, this.httpOptions).pipe(
+            tap((newUser: User) => this.log(`logged out`)),
+            catchError(this.handleError<User>(`logout`))
+        );
     }
 
     register(user: User) {
@@ -82,7 +89,14 @@ export class AccountService {
        return this.http.post<User>(this.usersRegisterUrl, user, this.httpOptions).pipe(
             tap((newUser: User) => this.log(`Added user login=${newUser.login}`)),
             catchError(this.handleError<User>(`register`))
-          );
+        );
+    }
+
+    updateUserValue(){
+        this.http.get<User>(this.environmetUrl, this.httpOptions).pipe(
+            tap((newUser: User) => this.log(`Added user login=${newUser.login}`)),
+            catchError(this.handleError<User>(`register`))
+            );
     }
 
     getAll() {
