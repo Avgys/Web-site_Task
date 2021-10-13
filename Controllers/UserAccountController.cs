@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UserApi;
-using UserApi.Models;
+using UsersApi;
+using UsersApi.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Roles;
+
 
 namespace Cars.Controllers
 {
@@ -19,6 +21,7 @@ namespace Cars.Controllers
     public class UserAccountController : ControllerBase
     {
         private readonly EFUserDBContext _context;
+        private Role _userRole;
 
         public UserAccountController(EFUserDBContext context)
         {
@@ -34,7 +37,8 @@ namespace Cars.Controllers
             UserAccount user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login && u.passhash == model.Password);
             if (user != null)
             {
-                await Authenticate(model.Login); // аутентификация
+                user.Role = await _context.Roles.FindAsync(user.RoleId);
+                await Authenticate(user); // аутентификация
 
                 return NoContent();
             }
@@ -58,21 +62,33 @@ namespace Cars.Controllers
         //[ValidateAntiForgeryToken]
         public async Task<ActionResult<UserAccount>> Register(RegisterUserModel model)
         {
+            if (model.Login == "guest")
+            {
+                return BadRequest("Don't use `guest` login");
+            }
+
             UserAccount user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login);
+            //UserAccount user = null;
             if (user == null)
             {
                 // добавляем пользователя в бд
-                _context.UserAccounts.Add(new UserAccount
+
+                _userRole = await _context.Roles.FirstOrDefaultAsync(x => x.Name == "user");
+                var newMember = new UserAccount
                 {
                     Login = model.Login,
                     Name = model.Name,
                     passhash = model.Password,
-                    PhoneNumber = model.PhoneNumber
-                });
+                    PhoneNumber = model.PhoneNumber,
+                    Role = _userRole,
+                    RoleId = _userRole.Id
+                };
+
+                _context.UserAccounts.Add(newMember);
 
                 await _context.SaveChangesAsync();
 
-                await Authenticate(model.Login); // аутентификация
+                await Authenticate(newMember); // аутентификация
 
                 return CreatedAtAction("GetUserAccount", "Success");
             }
@@ -85,15 +101,16 @@ namespace Cars.Controllers
         }
 
         [NonAction]
-        private async Task Authenticate(string userName)
+        private async Task Authenticate(UserAccount user)
         {
             // создаем один claim
             var claims = new List<Claim>
             {
-                new Claim(ClaimsIdentity.DefaultNameClaimType, userName)
+                new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
+                new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
             // создаем объект ClaimsIdentity
-            ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+            ClaimsIdentity id = new ClaimsIdentity(claims, "UserCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
             // установка аутентификационных куки
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
@@ -116,34 +133,34 @@ namespace Cars.Controllers
 
         // GET: api/UserAccount
         [HttpGet]
-        [Authorize]
+        //[Authorize(Roles = "user")]
         public async Task<ActionResult<UserAccount>> GetUserAccount()
         {
-            //var userAccount = await _context.UserAccounts.FindAsync(id);
-            var userAccount = await _context.UserAccounts.FindAsync(HttpContext.User.Identity.Name);
-
-            if (userAccount == null)
+            if (User.Identity.IsAuthenticated)
             {
-                return NotFound();
+                if (User.IsInRole("user"))
+                {
+                    var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+
+                    if (userAccount == null)
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        return userAccount;
+                    }
+                }
+                else
+                {
+                    return BadRequest("Wrong role");
+                }
             }
-
-            return userAccount;
-        }
-
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<UserAccount>> NoAuthenticated()
-        {
-            //var userAccount = await _context.UserAccounts.FindAsync(id);
-            //var userAccount = await _context.UserAccounts.FindAsync(HttpContext.User.Identity.Name);
-
-            //if (userAccount == null)
-            //{
-            //    return ();
-            //}
-
-            return NoContent();
-        }
+            else
+            {
+                return Unauthorized();
+            }  
+        }        
 
         // PUT: api/UserAccount/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

@@ -1,4 +1,4 @@
-using AdminApi;
+
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using UserApi;
+using UsersApi;
+using Roles;
 
 namespace Cars
 {
@@ -24,15 +25,19 @@ namespace Cars
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            // In production, the Angular files will be served from this directory
-
+            
             services.AddDbContext<EFAdminDBContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
             services.AddDbContext<EFUserDBContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
+            services.AddDbContext<RoleDBContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:DefaultConnection"]));
+
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                .AddCookie(options => //CookieAuthenticationOptions
                 {
-                   options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
-               });
+                   options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/users/login");
+                   options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/users/Login");
+                });
+
+            // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";

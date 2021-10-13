@@ -24,7 +24,7 @@ export class AccountService {
 
     private userSubject: BehaviorSubject<User>;
     public user: Observable<User>;
-    public guest: User = {  Name : "guest",
+    public guest: User = {  name : "guest",
                             login : "guest",
                             password : "guest",
                             confirmPassword : "guest",
@@ -47,8 +47,8 @@ export class AccountService {
         }    
     }
 
-    public get userValue() {
-        this.updateUserValue();
+    public get userValue(): User {
+        this.updateLocalUserValue().subscribe(x => this.userSubject.next(x ?? this.guest));
         return this.userSubject.value;
     }
 
@@ -92,11 +92,11 @@ export class AccountService {
         );
     }
 
-    updateUserValue(){
-        this.http.get<User>(this.environmetUrl, this.httpOptions).pipe(
-            tap((newUser: User) => this.log(`Added user login=${newUser.login}`)),
-            catchError(this.handleError<User>(`register`))
-            );
+    updateLocalUserValue(){
+       let temp;
+       return this.http.get<User>(this.environmetUrl, this.httpOptions).pipe(
+            tap(() => this.log(`Gog user info`)),            
+            );        
     }
 
     getAll() {
