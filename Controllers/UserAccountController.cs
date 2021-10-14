@@ -11,6 +11,8 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http;
+using System.Net;
 using Roles;
 
 
@@ -39,12 +41,30 @@ namespace Cars.Controllers
             {
                 user.Role = await _context.Roles.FindAsync(user.RoleId);
                 await Authenticate(user); // аутентификация
-
-                return NoContent();
+                HttpResponseMessage
+                return Ok("logged in");
             }
             else
             {
-                return BadRequest(); // not found
+                
+                return BadRequest("Wrond login or password"); // not found
+            }
+        }
+
+        public class NotFoundWithMessageResult : IHttpActionResult
+        {
+            private string message;
+
+            public NotFoundWithMessageResult(string message)
+            {
+                this.message = message;
+            }
+
+            public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.NotFound);
+                response.Content = new StringContent(message);
+                return Task.FromResult(response);
             }
         }
 

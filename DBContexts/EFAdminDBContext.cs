@@ -11,8 +11,7 @@ namespace UsersApi
     {
 
         public EFAdminDBContext(DbContextOptions<EFAdminDBContext> options) : base(options)
-        {
-            
+        {            
             Database.EnsureCreated();
         }
         public DbSet<AdminAccount> AdminAccounts { get; set; }

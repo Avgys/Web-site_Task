@@ -52,30 +52,20 @@ export class AccountService {
         return this.userSubject.value;
     }
 
-    login(login: string, password: string) {
-        // return this.http.post<User>(`${environment.apiUrl}/users/login`, { username, password })
-        //     .pipe(map(user => {
-        //         // store user details and jwt token in local storage to keep user logged in between page refreshes
-        //         localStorage.setItem('user', JSON.stringify(user));
-        //         this.userSubject.next(user);
-        //         return user;
-        //     }));
+    login(login: string, password: string) {        
          return this.http.post<User>(this.usersLoginUrl, { login, password }, this.httpOptions).pipe(
             tap(() => this.log(`logged in`)),
-            catchError(this.handleError<User>(`add hero`))
-          );
-
+            catchError(this.handleError<User>(`login`))
+        );
     }
 
-    logout() {
-        // remove user from local storage and set current user to guest
-        // localStorage.removeItem('user');
+    logout() {        
         this.userSubject.next(this.guest);
         this.router.navigate(['/account/login']);
-        return this.http.post<User>(this.usersLogoutUrl, null, this.httpOptions).pipe(
-            tap((newUser: User) => this.log(`logged out`)),
+        this.http.post(this.usersLogoutUrl, null, this.httpOptions).pipe(
+            tap(() => this.log(`logged out`)),
             catchError(this.handleError<User>(`logout`))
-        );
+        ).subscribe();
     }
 
     register(user: User) {
@@ -112,7 +102,7 @@ export class AccountService {
          // TODO: send the error to remote logging infrastructure
          console.error(error); // log to console instead
          // TODO: better job of transforming error for user consumption
-        //  this.log(`${operation} failed: ${error.message}`);
+         this.log(`${operation} failed: ${error.message}`);
          // Let the app keep running by returning an empty result.
          return of(result as T);
        };
