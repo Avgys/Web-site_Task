@@ -1,5 +1,6 @@
 ﻿import { Component, OnInit } from '@angular/core';
 
+import { Router, ActivatedRoute } from '@angular/router';
 import { User } from '../../_models';
 import { AccountService } from '../../_services';
 
@@ -7,13 +8,19 @@ import { AccountService } from '../../_services';
 export class HomeComponent implements OnInit {
     user: User;
 
-    constructor(private accountService: AccountService) {
-        this.user = this.accountService.userValue;
-        console.log(this.user);
+    constructor(
+        private accountService: AccountService,
+        private route: ActivatedRoute,
+        private router: Router
+
+        ) {
+        this.user = this.accountService.guest;               
     }
 
     ngOnInit() {        
-        // this.user = this.accountService.userValue;
-        console.log(this.user);
+        this.accountService.userValue.subscribe(x => 
+            {
+                this.user = x;
+            }); 
     }
 }

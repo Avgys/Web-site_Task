@@ -42,7 +42,7 @@ export class LoginComponent implements OnInit {
     onSubmit() {
         this.submitted = true;
 
-        console.log(this.f.login.value);
+        // console.log(this.f.login.value);
         // reset alerts on submit
         // this.alertService.clear();
 

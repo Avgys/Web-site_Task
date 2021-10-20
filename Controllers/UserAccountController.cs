@@ -6,169 +6,122 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UsersApi;
-using UsersApi.Models;
+using itechart.carRental.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http;
 using System.Net;
-using Roles;
+using itechart.carRental.DbContexts;
 
-
-namespace Cars.Controllers
+namespace itechart.carRental.Controllers
 {
     [Route("api/users")]
     [ApiController]
     public class UserAccountController : ControllerBase
     {
-        private readonly EFUserDBContext _context;
+        private readonly CarsDBContext _context;
         private Role _userRole;
 
-        public UserAccountController(EFUserDBContext context)
+        public UserAccountController(CarsDBContext context)
         {
             _context = context;
         }
 
         [Route("login")]
         [HttpPost]
-        //[ActionName("Login")]
-        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginUserModel model)
         {
-            UserAccount user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login && u.passhash == model.Password);
+            Account user = await _context.UserAccounts
+                .FirstOrDefaultAsync(u => 
+                    u.Login == model.Login && u.Password == model.Password
+                );
             if (user != null)
             {
                 user.Role = await _context.Roles.FindAsync(user.RoleId);
-                await Authenticate(user); // аутентификация
-                HttpResponseMessage
-                return Ok("logged in");
+                await Authenticate(user); 
+                Account result = new Account() { Id = 0, Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
+                return Ok(result);
             }
             else
-            {
-                
-                return BadRequest("Wrond login or password"); // not found
+            {                
+                return BadRequest("Wrond login or password"); 
             }
         }
-
-        public class NotFoundWithMessageResult : IHttpActionResult
-        {
-            private string message;
-
-            public NotFoundWithMessageResult(string message)
-            {
-                this.message = message;
-            }
-
-            public Task<HttpResponseMessage> ExecuteAsync(CancellationToken cancellationToken)
-            {
-                var response = new HttpResponseMessage(HttpStatusCode.NotFound);
-                response.Content = new StringContent(message);
-                return Task.FromResult(response);
-            }
-        }
-
-        //public async Task<ActionResult<UserAccount>> PostUserAccount(UserAccount userAccount)
-        //{
-        //    _context.UserAccounts.Add(userAccount);
-        //    await _context.SaveChangesAsync();
-
-        //    return CreatedAtAction("GetUserAccount", new { id = userAccount.Id }, userAccount);
-        //}
 
         [Route("register")]
         [HttpPost]
-        //[ActionName("Register")]
-        //[ValidateAntiForgeryToken]
-        public async Task<ActionResult<UserAccount>> Register(RegisterUserModel model)
+        public async Task<ActionResult<Account>> Register(RegisterUserModel model)
         {
             if (model.Login == "guest")
             {
                 return BadRequest("Don't use `guest` login");
             }
 
-            UserAccount user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login);
-            //UserAccount user = null;
+            Account user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login);
             if (user == null)
             {
-                // добавляем пользователя в бд
-
                 _userRole = await _context.Roles.FirstOrDefaultAsync(x => x.Name == "user");
-                var newMember = new UserAccount
+                Account newMember = new Account
                 {
                     Login = model.Login,
                     Name = model.Name,
-                    passhash = model.Password,
+                    Password = model.Password,
                     PhoneNumber = model.PhoneNumber,
                     Role = _userRole,
                     RoleId = _userRole.Id
                 };
 
                 _context.UserAccounts.Add(newMember);
-
                 await _context.SaveChangesAsync();
-
-                await Authenticate(newMember); // аутентификация
+                await Authenticate(newMember);
 
                 return CreatedAtAction("GetUserAccount", "Success");
             }
             else
-            {
-                //var responseMessage = new HttpResponseMessage<List<string>>(errors, HttpStatusCode.BadRequest);
-                //throw new HttpResponseException(responseMessage);
+            {                
                 return BadRequest("already used"); // found already registered user
             }
         }
 
-        [NonAction]
-        private async Task Authenticate(UserAccount user)
+        private async Task Authenticate(Account user)
         {
-            // создаем один claim
-            var claims = new List<Claim>
+            List<Claim> claims = new List<Claim>
             {
                 new Claim(ClaimsIdentity.DefaultNameClaimType, user.Login),
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
-            // создаем объект ClaimsIdentity
             ClaimsIdentity id = new ClaimsIdentity(claims, "UserCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-            // установка аутентификационных куки
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
 
         [Route("logout")]
         [HttpPost]
-        //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return NoContent();
         }
 
-        ////GET: api/UserAccount
-        //[HttpGet({id})]
-        //public async Task<ActionResult<IEnumerable<UserAccount>>> GetUserAccounts(int id)
-        //{
-        //    return await _context.UserAccounts.ToListAsync();
-        //}
-
-        // GET: api/UserAccount
+       
         [HttpGet]
-        //[Authorize(Roles = "user")]
-        public async Task<ActionResult<UserAccount>> GetUserAccount()
+        public async Task<ActionResult<Account>> GetUserAccount()
         {
             if (User.Identity.IsAuthenticated)
             {
                 if (User.IsInRole("user"))
                 {
-                    var userAccount = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+                    Account user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
 
-                    if (userAccount == null)
+                    if (user == null)
                     {
                         return NotFound();
                     }
                     else
                     {
-                        return userAccount;
+                        Account result = new Account() { Id = 0, Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
+                        return result;
                     }
                 }
                 else
@@ -182,17 +135,16 @@ namespace Cars.Controllers
             }  
         }        
 
-        // PUT: api/UserAccount/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Account/5
         //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutUserAccount(int id, UserAccount userAccount)
+        //public async Task<IActionResult> PutUserAccount(int id, Account Account)
         //{
-        //    if (id != userAccount.Id)
+        //    if (id != Account.Id)
         //    {
         //        return BadRequest();
         //    }
 
-        //    _context.Entry(userAccount).State = EntityState.Modified;
+        //    _context.Entry(Account).State = EntityState.Modified;
 
         //    try
         //    {
@@ -213,34 +165,32 @@ namespace Cars.Controllers
         //    return NoContent();
         //}
 
-        // POST: api/UserAccount
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/Account
         //[HttpPost]
-        //public async Task<ActionResult<UserAccount>> PostUserAccount(UserAccount userAccount)
+        //public async Task<ActionResult<Account>> PostUserAccount(Account Account)
         //{
-        //    _context.UserAccounts.Add(userAccount);
+        //    _context.UserAccounts.Add(Account);
         //    await _context.SaveChangesAsync();
 
-        //    return CreatedAtAction("GetUserAccount", new { id = userAccount.Id }, userAccount);
+        //    return CreatedAtAction("GetUserAccount", new { id = Account.Id }, Account);
         //}
 
-        // DELETE: api/UserAccount/5
+        // DELETE: api/Account/5
         //[HttpDelete("{id}")]
         //public async Task<IActionResult> DeleteUserAccount(int id)
         //{
-        //    var userAccount = await _context.UserAccounts.FindAsync(id);
-        //    if (userAccount == null)
+        //    var Account = await _context.UserAccounts.FindAsync(id);
+        //    if (Account == null)
         //    {
         //        return NotFound();
         //    }
 
-        //    _context.UserAccounts.Remove(userAccount);
+        //    _context.UserAccounts.Remove(Account);
         //    await _context.SaveChangesAsync();
 
         //    return NoContent();
         //}
 
-        [NonAction]
         private bool UserAccountExists(int id)
         {
             return _context.UserAccounts.Any(e => e.Id == id);

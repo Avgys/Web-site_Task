@@ -5,34 +5,31 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UsersApi.Models;
-using UsersApi;
+using itechart.carRental.Models;
+using itechart.carRental.DbContexts;
 
-namespace Cars.Controllers
+namespace itechart.carRental.Controllers
 {
-    using Roles;
 
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly EFAdminDBContext _context;
+        private readonly CarsDBContext _context;
 
-        public AdminController(EFAdminDBContext context)
+        public AdminController(CarsDBContext context)
         {
             _context = context;
         }
 
-        // GET: api/AdminAccounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<AdminAccount>>> GetAdminAccounts()
+        public async Task<ActionResult<IEnumerable<Account>>> GetAdminAccounts()
         {
             return await _context.AdminAccounts.ToListAsync();
         }
 
-        // GET: api/AdminAccounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<AdminAccount>> GetAdminAccount(int id)
+        public async Task<ActionResult<Account>> GetAdminAccount(int id)
         {
             var adminAccount = await _context.AdminAccounts.FindAsync(id);
 
@@ -44,10 +41,8 @@ namespace Cars.Controllers
             return adminAccount;
         }
 
-        // PUT: api/AdminAccounts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAdminAccount(int id, AdminAccount adminAccount)
+        public async Task<IActionResult> PutAdminAccount(int id, Account adminAccount)
         {
             if (id != adminAccount.Id)
             {
@@ -75,10 +70,8 @@ namespace Cars.Controllers
             return NoContent();
         }
 
-        // POST: api/AdminAccounts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<AdminAccount>> PostAdminAccount(AdminAccount adminAccount)
+        public async Task<ActionResult<Account>> PostAdminAccount(Account adminAccount)
         {
             _context.AdminAccounts.Add(adminAccount);
             await _context.SaveChangesAsync();
@@ -86,7 +79,6 @@ namespace Cars.Controllers
             return CreatedAtAction(nameof(GetAdminAccount), new { id = adminAccount.Id }, adminAccount);
         }
 
-        // DELETE: api/AdminAccounts/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdminAccount(int id)
         {

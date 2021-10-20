@@ -1,21 +1,20 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace UsersApi.Models
+namespace itechart.carRental.Models
 {
     public class RegisterUserModel
     {
-
         public string Name { get; set; }
 
-        [Required(ErrorMessage = "Не указан Login")]
+        [Required(ErrorMessage = "Login missing")]
         public string Login { get; set; }
 
-        [Required(ErrorMessage = "Не указан пароль")]
+        [Required(ErrorMessage = "Password missing")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Пароль введен неверно")]
+        [Compare("Password", ErrorMessage = "Does not match password")]
         public string ConfirmPassword { get; set; }
 
         public string PhoneNumber { get; set; }
@@ -23,10 +22,10 @@ namespace UsersApi.Models
 
     public class LoginUserModel
     {
-        [Required(ErrorMessage = "Не указан Login")]
+        [Required(ErrorMessage = "Login missing")]
         public string Login { get; set; }
 
-        [Required(ErrorMessage = "Не указан пароль")]
+        [Required(ErrorMessage = "Password missing")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
     }

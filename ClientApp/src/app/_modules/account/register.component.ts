@@ -41,7 +41,7 @@ export class RegisterComponent implements OnInit {
     onSubmit() {
         this.submitted = true;
         // alert(this.form.value);
-        console.log(this.form.value);
+        // console.log(this.form.value);
         // reset alerts on submit
         // this.alertService.clear();
 
