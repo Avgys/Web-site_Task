@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
-import { AccountService} from '../../_services';
+import { AccountService, AlertService} from '../../_services';
 
 @Component({ templateUrl: 'login.component.html' })
 export class LoginComponent implements OnInit {
@@ -17,7 +17,7 @@ export class LoginComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
-        // private alertService: AlertService
+        private alertService: AlertService
     ) { 
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.form = this.formBuilder.group({
@@ -32,36 +32,29 @@ export class LoginComponent implements OnInit {
             password: ['', Validators.required]
         });
 
-        // get return url from route parameters or default to '/'
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     }
 
-    // convenience getter for easy access to form fields
-    get f() { return this.form.controls; }
-
     onSubmit() {
         this.submitted = true;
+        this.alertService.clear();
 
-        // console.log(this.f.login.value);
-        // reset alerts on submit
-        // this.alertService.clear();
-
-        // stop here if form is invalid
         if (this.form.invalid) {
             return;
         }
 
         this.loading = true;
-        this.accountService.login(this.f.login.value, this.f.password.value)
+        this.accountService.login(this.form.controls.login.value, this.form.controls.password.value)
             .pipe(first())
-            .subscribe(
+            .subscribe(                  
                 data => {
+                    this.alertService.success(`logged in user login=${data.login}`);
                     this.router.navigate([this.returnUrl]);
-                },
-                error => {
-                    // this.alertService.error(error);
-                    alert(error);
+                },              
+                () => {
                     this.loading = false;
-                });
+                    this.submitted = false;
+                }
+            )
     }
 }

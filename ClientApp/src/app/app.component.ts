@@ -14,11 +14,13 @@ export class AppComponent {
 
     constructor(
       private accountService: AccountService,
-      private router: Router) {
-        this.accountService.user.subscribe(x => this.user = x);
+      private router: Router
+    ) 
+    {
+      this.accountService.user.subscribe(x => this.user = x);
     }
 
     logout() {
-        this.accountService.logout().subscribe(() => this.router.navigate(['/account/login']));
+      this.accountService.logout().subscribe(() => this.router.navigate(['/account/login']));
     }
 }

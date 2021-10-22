@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace itechart.carRental.Models {
+namespace itechart.CarRental.Models {
 
     public class Role
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<Account> Users { get; set; }
+        public List<Account> Accounts;
         public Role()
         {
-            Users = new List<Account>();
+            Accounts = new List<Account>();
         }
     }
 }
-

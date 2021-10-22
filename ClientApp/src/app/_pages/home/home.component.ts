@@ -12,8 +12,8 @@ export class HomeComponent implements OnInit {
         private accountService: AccountService,
         private route: ActivatedRoute,
         private router: Router
-
-        ) {
+    )   
+    {
         this.user = this.accountService.guest;               
     }
 
@@ -22,5 +22,6 @@ export class HomeComponent implements OnInit {
             {
                 this.user = x;
             }); 
+            
     }
 }

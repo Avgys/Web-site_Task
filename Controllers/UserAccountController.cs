@@ -6,16 +6,16 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UsersApi;
-using itechart.carRental.Models;
+using itechart.CarRental.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using System.Net.Http;
 using System.Net;
-using itechart.carRental.DbContexts;
+using itechart.CarRental.DbContexts;
 
-namespace itechart.carRental.Controllers
+namespace itechart.CarRental.Controllers
 {
     [Route("api/users")]
     [ApiController]
@@ -33,15 +33,16 @@ namespace itechart.carRental.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginUserModel model)
         {
-            Account user = await _context.UserAccounts
+           User user = await _context.Users
                 .FirstOrDefaultAsync(u => 
                     u.Login == model.Login && u.Password == model.Password
                 );
+
             if (user != null)
             {
                 user.Role = await _context.Roles.FindAsync(user.RoleId);
                 await Authenticate(user); 
-                Account result = new Account() { Id = 0, Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
+                User result = new User() { Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
                 return Ok(result);
             }
             else
@@ -54,16 +55,11 @@ namespace itechart.carRental.Controllers
         [HttpPost]
         public async Task<ActionResult<Account>> Register(RegisterUserModel model)
         {
-            if (model.Login == "guest")
-            {
-                return BadRequest("Don't use `guest` login");
-            }
-
-            Account user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == model.Login);
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == model.Login);
             if (user == null)
             {
                 _userRole = await _context.Roles.FirstOrDefaultAsync(x => x.Name == "user");
-                Account newMember = new Account
+                User newMember = new User
                 {
                     Login = model.Login,
                     Name = model.Name,
@@ -73,7 +69,7 @@ namespace itechart.carRental.Controllers
                     RoleId = _userRole.Id
                 };
 
-                _context.UserAccounts.Add(newMember);
+                _context.Users.Add(newMember);
                 await _context.SaveChangesAsync();
                 await Authenticate(newMember);
 
@@ -81,7 +77,7 @@ namespace itechart.carRental.Controllers
             }
             else
             {                
-                return BadRequest("already used"); // found already registered user
+                return BadRequest("already used"); 
             }
         }
 
@@ -112,7 +108,7 @@ namespace itechart.carRental.Controllers
             {
                 if (User.IsInRole("user"))
                 {
-                    Account user = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+                    Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
 
                     if (user == null)
                     {
@@ -169,7 +165,7 @@ namespace itechart.carRental.Controllers
         //[HttpPost]
         //public async Task<ActionResult<Account>> PostUserAccount(Account Account)
         //{
-        //    _context.UserAccounts.Add(Account);
+        //    _context.Users.Add(Account);
         //    await _context.SaveChangesAsync();
 
         //    return CreatedAtAction("GetUserAccount", new { id = Account.Id }, Account);
@@ -179,13 +175,13 @@ namespace itechart.carRental.Controllers
         //[HttpDelete("{id}")]
         //public async Task<IActionResult> DeleteUserAccount(int id)
         //{
-        //    var Account = await _context.UserAccounts.FindAsync(id);
+        //    var Account = await _context.Users.FindAsync(id);
         //    if (Account == null)
         //    {
         //        return NotFound();
         //    }
 
-        //    _context.UserAccounts.Remove(Account);
+        //    _context.Users.Remove(Account);
         //    await _context.SaveChangesAsync();
 
         //    return NoContent();
@@ -193,7 +189,7 @@ namespace itechart.carRental.Controllers
 
         private bool UserAccountExists(int id)
         {
-            return _context.UserAccounts.Any(e => e.Id == id);
+            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

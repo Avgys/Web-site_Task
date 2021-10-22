@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using itechart.carRental.DbContexts;
+using itechart.CarRental.DbContexts;
 
 namespace Cars
 {

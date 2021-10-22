@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace itechart.carRental.Models
+namespace itechart.CarRental.Models
 {
     public class RegisterUserModel
     {

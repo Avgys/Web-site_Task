@@ -1,14 +1,13 @@
-using System;
 using Microsoft.EntityFrameworkCore;
-using itechart.carRental.Models;
+using itechart.CarRental.Models;
 
-namespace itechart.carRental.DbContexts
+namespace itechart.CarRental.DbContexts
 {
     public class CarsDBContext : DbContext
     {
-        public DbSet<Account> UserAccounts { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Account> AdminAccounts { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public CarsDBContext(DbContextOptions<CarsDBContext> options) : base(options)
         {

@@ -2,16 +2,11 @@
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-
 import { catchError, map, tap } from 'rxjs/operators';
-
 import { environment } from '../../environments/environment';
+import { AlertService } from '.';
 import { User } from '../_models';
 import { UsersModule } from '../_models/users/users.module';
-
-import {
-    debounceTime, distinctUntilChanged, switchMap
-  } from 'rxjs/operators';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -24,23 +19,17 @@ export class AccountService {
     private usersRegisterUrl = this.environmetUrl + 'register';
     private usersLoginUrl = this.environmetUrl + 'login';    
     private usersLogoutUrl = this.environmetUrl + 'logout';
-
     private isHttpAvailable = true;
-
     private userSubject: BehaviorSubject<User>;
     public user: Observable<User>;
-    public guest: User = {  name : "guest",
-                            login : "guest",
-                            password : "guest",
-                            confirmPassword : "guest",
-                            phoneNumber : ""
-                        }
+    public guest: User = { name : "guest", login : "guest", password : "guest", confirmPassword : "guest", phoneNumber : "" }
 
     constructor(
         private router: Router,
-        private http: HttpClient
+        private http: HttpClient,
+        private alertSerivce: AlertService
     )
-     {
+    {
         if(localStorage.getItem('user') !== null){
             let temp = JSON.parse(localStorage.getItem('user') ?? "{}");
             this.userSubject = new BehaviorSubject<User>(temp);
@@ -53,7 +42,6 @@ export class AccountService {
     }
 
     public get userValue(): Observable<User> {
-        // console.log(this.userSubject.value);
         if (this.isHttpAvailable){
             this.isHttpAvailable = false;
             this.getServerUserInfo().subscribe(x => 
@@ -67,10 +55,9 @@ export class AccountService {
     }
 
     login(login: string, password: string) {        
-         return this.http.post<User>(this.usersLoginUrl, { login, password }, this.httpOptions).pipe(
+         return this.http.post<User>(this.usersLoginUrl, { login, password }, this.httpOptions).pipe(            
             tap((_user: User) => 
-            {
-                this.log(`logged in user login=${_user.login}`);
+            {                
                 this.userSubject.next(_user);                
             }),
             catchError(this.handleError<User>(`login`))
@@ -78,26 +65,26 @@ export class AccountService {
     }
 
     logout() {   
-        this.userSubject.next(this.guest);          
-        return this.http.post(this.usersLogoutUrl, null, this.httpOptions).pipe(
-            tap(() => this.log(`logged out`)),
-            catchError(this.handleError(`logout`))
+        this.userSubject.next(this.guest);
+        this.isHttpAvailable = false;
+        setTimeout(() => this.isHttpAvailable = true, 150);         
+        return this.http.post(this.usersLogoutUrl, null, this.httpOptions).pipe(            
+            tap(() => this.alertSerivce.success(`logged out`)),
+            catchError(err => {
+                throw 'error in source. Details: ' + err;
+              }),
+            catchError(err => {
+                this.handleError(`logout`);
+                throw err;
+            })
         );
     }
 
     register(user: User) {
-        // let user = {  Name : newRegUser.Name,
-        //                 login : newRegUser.login,
-        //                 password : newRegUser.password,
-        //                 confirmPassword : newRegUser.confirmPassword,
-        //                 phoneNumber : ""
-        //             }
-        // return this.http.post(`${environment.apiUrl}/users/register`, user);
        return this.http.post<User>(this.usersRegisterUrl, user, this.httpOptions).pipe(
             tap((newUser: User) => 
             {
-                this.log(`Added user login=${newUser.login}`);
-                
+                this.alertSerivce.success((`Registration successful`));                
             }),
             catchError(this.handleError<User>(`register`))
         );
@@ -108,28 +95,11 @@ export class AccountService {
             catchError(this.handleError<User>(`getUserInfo`)))        
     }
 
-    // getAll() {
-    //     return this.http.get<User[]>(`${environment.apiUrl}/users`);
-    // }
-
-    // getById(id: string) {
-    //     return this.http.get<User>(`${environment.apiUrl}/users/${id}`);
-    // }
-
     private handleError<T>(operation = 'operation', result?: T) {
-        return (error: any): Observable<T> => {
-         // TODO: send the error to remote logging infrastructure
-         console.error(error); // log to console instead
-         // TODO: better job of transforming error for user consumption
-         this.log(`${operation} failed: ${error.message}`);
-         this.log(`result: ${result}`);
-         // Let the app keep running by returning an empty result.
+        return (error: any): Observable<T> => {         
+        //  this.alertSerivce.error(error);
          return of(result as T);
-       };
-    }
-
-    private log(message: string) {
-        // this.messageService.add(`HeroService: ${message}`);
+        };
     }
 
     // update(id: number, params: string) {
