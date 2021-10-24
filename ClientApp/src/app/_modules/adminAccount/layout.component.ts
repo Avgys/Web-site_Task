@@ -14,7 +14,6 @@ export class LayoutComponent {
             if (x !== undefined){
                 this.router.navigate(['/']);
             }
-        })
-        
+        })        
     }
 }

@@ -24,7 +24,7 @@ export class AccountService {
     {          
     }    
 
-    login(role: string, login: string, password: string, currentApi: string = 'api/users/') {   
+    login(role: string, login: string, password: string, currentApi: string) {   
         let url = `${environment.apiUrl}/` + currentApi + 'login'; 
         return this.http.post<Account>(url, {role, login, password }, this.httpOptions).pipe(            
             catchError(err => {
@@ -34,7 +34,7 @@ export class AccountService {
         );
     }
 
-    logout(currentApi: string = 'api/users/') {
+    logout(currentApi: string) {
         this.isHttpAvailable = false;
         setTimeout(() => this.isHttpAvailable = true, 150);  
         let url = `${environment.apiUrl}/` + currentApi + 'logout';        
@@ -47,7 +47,7 @@ export class AccountService {
         );
     }
 
-    register(account: Account, currentApi: string = 'api/users/') {  
+    register(account: Account, currentApi: string) {  
         if (account.password == account.confirmPassword){      
             let url = `${environment.apiUrl}/` + currentApi + 'register';  
             return this.http.post<Account>(url, account, this.httpOptions).pipe(
@@ -57,15 +57,15 @@ export class AccountService {
         throw Error("password not equal to confirmPassword");
     }
 
-    getAccountInfo(currentApi: string = 'api/users/'): Observable<any>{
+    getAccountInfo(currentApi: string, login: string, isCurrent : boolean ): Observable<Account[] | undefined>{
         if (this.isHttpAvailable){            
             setTimeout(() => this.isHttpAvailable = true, 150);  
-            let url = `${environment.apiUrl}/` + currentApi;        
-            return this.http.get<Account>(url, this.httpOptions).pipe(              
-                catchError(this.handleError<Account>(`getAccountInfo`))
+            let url = `${environment.apiUrl}/` + currentApi + login + `?isCurrent=${isCurrent}`;        
+            return this.http.get<Account[]>(url, this.httpOptions).pipe(              
+                catchError(this.handleError<Account[]>(`getAccountInfo`))
             );    
         } 
-        return of(null);  
+        return of(undefined);  
     }
 
     private handleError<T>(operation = 'operation', result?: T) {
@@ -75,15 +75,15 @@ export class AccountService {
         };
     }
 
-    update(account: Account, currentApi: string = 'api/users/'): Observable<any>{
-        let url = `${environment.apiUrl}/` + currentApi;  
+    update(account: Account, currentApi: string): Observable<any>{
+        let url = `${environment.apiUrl}/` + currentApi + account.login;  
         return this.http.put<Account>(url, account, this.httpOptions).pipe(            
             catchError(this.handleError<any>('update Info'))
         );
     }
 
-    delete(login: string, currentApi: string = 'api/users/') {
-        let url = `${environment.apiUrl}/` + currentApi;  
+    delete(login: string, currentApi: string) {
+        let url = `${environment.apiUrl}/` + currentApi + login;  
         return this.http.delete(url);
     }
 }

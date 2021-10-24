@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { UsersRoutingModule } from './users-routing.module';
-import { AccountModule } from '@app/_modules/Account/account.module';
+import { AccountModule } from '@app/_modules/userAccount/account.module';
 import { OrderListComponent } from './orderList.component'
 
 @NgModule({

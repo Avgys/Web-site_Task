@@ -3,9 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { HomeComponent } from './_pages/home';
 import { AuthGuard } from './_helpers';
 
-const accountModule = () => import('@modules/Account/account.module').then(x => x.AccountModule);
+const accountModule = () => import('@app/_modules/userAccount/account.module').then(x => x.AccountModule);
 // const usersModule = () => import('@modules/user/users.module').then(x => x.UsersModule);
-const adminModule = () => import('@modules/admin/admin.module').then(x => x.AdminModule);
+const adminModule = () => import('@app/_modules/adminAccount/admin.module').then(x => x.AdminModule);
 
 const routes: Routes = [
     { path: '', component: HomeComponent},
@@ -13,7 +13,7 @@ const routes: Routes = [
     { path: 'account', loadChildren: accountModule },
     { path: 'admin', loadChildren:  adminModule},
 
-    { path: '**', redirectTo: '' }
+    // { path: '**', redirectTo: '' }
 ];
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

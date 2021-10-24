@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace itechart.CarRental.Controllers
 {
-    [Route("api/users")]
+    [Route("api/accounts")]
     [ApiController]
-    public class UserAccountController : ControllerBase
+    public class AccountController : ControllerBase
     {
         private readonly CarsDBContext _context;
 
-        public UserAccountController(CarsDBContext context)
+        public AccountController(CarsDBContext context)
         {
             _context = context;
 
@@ -76,9 +76,11 @@ namespace itechart.CarRental.Controllers
         public async Task<ActionResult<Account>> Register(RegisterAccountModel model)
         {
             User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == model.Login);
-
             Role role = _context.Roles.FirstOrDefault(x => x.Name == model.Role);
-
+            if (role == null)
+            {
+                return BadRequest($"No such role exists");
+            }
             if (user == null)
             {
                 User newMember = new User
@@ -111,7 +113,7 @@ namespace itechart.CarRental.Controllers
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
             ClaimsIdentity id = new ClaimsIdentity(claims, "UserCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));            
         }
 
         [Route("logout")]
@@ -122,21 +124,54 @@ namespace itechart.CarRental.Controllers
             return NoContent();
         }
 
+        //private SafetyAccount TransformUserToSafetyAccount(User )
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetUserAccount([FromQuery] int offset, [FromQuery] int count)
+        public async Task<ActionResult<IEnumerable<Account>>> GetUserAccount([FromQuery] int offset, [FromQuery] int count, [FromQuery] bool isCurrent = true)
         {
             if (User.Identity.IsAuthenticated)
             {
                 if (User.IsInRole("admin"))
                 {
-                    
-                    Account[] user = await _context.Users.ToArrayAsync();
+                    if (isCurrent) {
+                        Account admin = await _context.Admins.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+
+                        if (admin == null)
+                        {
+                            return NotFound();
+                        }
+                        else
+                        {
+                            return new Account[] { new Account {
+                                Name = admin.Name, Login = admin.Login, PhoneNumber = admin.PhoneNumber, RoleName = "admin"  
+                            }};
+                        }
+                    }
+                    else
+                    {
+                        Account[] users = await _context.Users.ToArrayAsync();
+                        if (users == null)
+                        {
+                            return NotFound();
+                        }
+                        return users;
+                    }
+                }
+                else if (User.IsInRole("user"))
+                {
+                    Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
 
                     if (user == null)
                     {
                         return NotFound();
                     }
-                    return user;
+                    else
+                    {
+                        return new Account[] { 
+                            new Account() { 
+                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = "user" 
+                            }};
+                    }
                 }
                 else
                 {
@@ -150,13 +185,14 @@ namespace itechart.CarRental.Controllers
         }
 
         [HttpGet("{login}")]
-        public async Task<ActionResult<Account>> GetUserAccount(string login)
+        public async Task<ActionResult<IEnumerable<Account>>> GetUserAccount(string login)
         {
             if (User.Identity.IsAuthenticated)
             {
                 if ((User.IsInRole("user") && HttpContext.User.Identity.Name == login) || User.IsInRole("admin"))
                 {
                     Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+                    
 
                     if (user == null)
                     {
@@ -164,13 +200,16 @@ namespace itechart.CarRental.Controllers
                     }
                     else
                     {
-                        Account result = new Account() { Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
-                        return result;
+                        Role role = await _context.Roles.FindAsync(user.RoleId);
+                        return new Account[] {
+                            new Account() {
+                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = role.Name
+                            }};
                     }
                 }
                 else
                 {
-                    return BadRequest("Wrong role");
+                    return BadRequest("Not accessed");
                 }
             }
             else
@@ -203,7 +242,7 @@ namespace itechart.CarRental.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        if (!UserAccountExists(user.Id))
+                        if (!UserAccountExists(user.Login))
                         {
                             return NotFound();
                         }
@@ -248,7 +287,7 @@ namespace itechart.CarRental.Controllers
                     }
                     catch (DbUpdateConcurrencyException)
                     {
-                        if (!UserAccountExists(user.Id))
+                        if (!UserAccountExists(user.Login))
                         {
                             return NotFound();
                         }
@@ -271,9 +310,9 @@ namespace itechart.CarRental.Controllers
             return NoContent();
         }
 
-        private bool UserAccountExists(int id)
+        private bool UserAccountExists(string login)
         {
-            return _context.Users.Any(e => e.Id == id);
+            return _context.Users.Any(e => e.Login == login);
         }
     }
 }
