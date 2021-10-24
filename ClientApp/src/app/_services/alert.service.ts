@@ -8,6 +8,7 @@ import { Alert, AlertType } from '../_models';
 export class AlertService {
     private subject = new Subject<Alert>();
     private defaultId = 'default-alert';
+    private logger : Alert[] = [];
 
     onAlert(id = this.defaultId): Observable<Alert> {
         return this.subject.asObservable().pipe(filter(x => x && x.id === id));
@@ -31,6 +32,7 @@ export class AlertService {
  
     alert(alert: Alert) {
         alert.id = alert.id || this.defaultId;
+        this.logger.push(alert);
         this.subject.next(alert);
     }
 

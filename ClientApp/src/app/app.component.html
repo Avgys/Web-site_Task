@@ -1,9 +1,9 @@
-
-<nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="user">
+<nav class="navbar navbar-expand navbar-dark bg-dark">
   <div class="navbar-nav">
       <a class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
       <!-- <a class="nav-item nav-link" routerLink="/users" routerLinkActive="active">Users</a> -->
-      <a class="nav-item nav-link" routerLink="/" (click)="logout()">Logout</a>
+      <a *ngIf="!user" class="nav-item nav-link" routerLink="/account/login" (click)="login()">Login</a>
+      <a *ngIf="user" class="nav-item nav-link" routerLink="/" (click)="logout()">Logout</a>
   </div>
 </nav>
 

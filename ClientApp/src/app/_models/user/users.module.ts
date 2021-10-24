@@ -3,19 +3,18 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { UsersRoutingModule } from './users-routing.module';
-import { LayoutComponent } from './layout.component';
-// import { ListComponent } from './list.component';
-// import { AddEditComponent } from './add-edit.component';
+import { AccountModule } from '@app/_modules/Account/account.module';
+import { OrderListComponent } from './orderList.component'
 
 @NgModule({
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        UsersRoutingModule
+        UsersRoutingModule,
+        AccountModule
     ],
     declarations: [
-        LayoutComponent,
-        // ListComponent,
+        OrderListComponent,
         // AddEditComponent
     ]
 })

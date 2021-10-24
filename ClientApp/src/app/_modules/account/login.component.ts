@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
-import { AccountService, AlertService} from '../../_services';
+import { AccountService, AlertService, UserService} from '@services/.';
 
 @Component({ templateUrl: 'login.component.html' })
 export class LoginComponent implements OnInit {
@@ -17,7 +17,8 @@ export class LoginComponent implements OnInit {
         private route: ActivatedRoute,
         private router: Router,
         private accountService: AccountService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private userService: UserService
     ) { 
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.form = this.formBuilder.group({
@@ -44,17 +45,19 @@ export class LoginComponent implements OnInit {
         }
 
         this.loading = true;
-        this.accountService.login(this.form.controls.login.value, this.form.controls.password.value)
+        this.userService.login(this.form.controls.login.value, this.form.controls.password.value)
             .pipe(first())
             .subscribe(                  
                 data => {
-                    this.alertService.success(`logged in user login=${data.login}`);
+                    // alert(data);
+                    this.alertService.success(`logged by login=${data.login}`);
                     this.router.navigate([this.returnUrl]);
                 },              
-                () => {
-                    this.loading = false;
+                error => {
+                    this.loading = false;                    
+                    this.alertService.error(error);
                     this.submitted = false;
                 }
-            )
+        )
     }
 }

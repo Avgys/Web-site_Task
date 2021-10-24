@@ -2,8 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace itechart.CarRental.Models
 {
-    public class RegisterUserModel
+    public class RegisterAccountModel
     {
+        [Required(ErrorMessage = "Role missing")]
+        public string Role { get; set; }
+
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Login missing")]
@@ -20,8 +23,11 @@ namespace itechart.CarRental.Models
         public string PhoneNumber { get; set; }
     }
 
-    public class LoginUserModel
+    public class LoginAccountModel
     {
+        [Required(ErrorMessage = "Role missing")]
+        public string Role { get; set; }
+
         [Required(ErrorMessage = "Login missing")]
         public string Login { get; set; }
 

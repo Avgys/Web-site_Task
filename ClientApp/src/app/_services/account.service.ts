@@ -5,8 +5,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AlertService } from '.';
-import { User } from '../_models';
-import { UsersModule } from '../_models/users/users.module';
+import { Account } from '../_models';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -15,64 +14,32 @@ export class AccountService {
         headers: new HttpHeaders({ 'Content-Type': 'application/json' })
     };
 
-    private environmetUrl = `${environment.apiUrl}` + '/api/users/';
-    private usersRegisterUrl = this.environmetUrl + 'register';
-    private usersLoginUrl = this.environmetUrl + 'login';    
-    private usersLogoutUrl = this.environmetUrl + 'logout';
     private isHttpAvailable = true;
-    private userSubject: BehaviorSubject<User>;
-    public user: Observable<User>;
-    public guest: User = { name : "guest", login : "guest", password : "guest", confirmPassword : "guest", phoneNumber : "" }
 
     constructor(
         private router: Router,
         private http: HttpClient,
         private alertSerivce: AlertService
     )
-    {
-        if(localStorage.getItem('user') !== null){
-            let temp = JSON.parse(localStorage.getItem('user') ?? "{}");
-            this.userSubject = new BehaviorSubject<User>(temp);
-            this.user = this.userSubject.asObservable();
-        }    
-        else{
-            this.userSubject = new BehaviorSubject<User>(this.guest);
-            this.user = this.userSubject.asObservable();
-        }    
-    }
+    {          
+    }    
 
-    public get userValue(): Observable<User> {
-        if (this.isHttpAvailable){
-            this.isHttpAvailable = false;
-            this.getServerUserInfo().subscribe(x => 
-            {
-                this.userSubject.next(x ?? this.guest),
-                setTimeout(() => this.isHttpAvailable = true, 150);
-            });
-        }
-        
-        return this.user;
-    }
-
-    login(login: string, password: string) {        
-         return this.http.post<User>(this.usersLoginUrl, { login, password }, this.httpOptions).pipe(            
-            tap((_user: User) => 
-            {                
-                this.userSubject.next(_user);                
-            }),
-            catchError(this.handleError<User>(`login`))
+    login(role: string, login: string, password: string, currentApi: string = 'api/users/') {   
+        let url = `${environment.apiUrl}/` + currentApi + 'login'; 
+        return this.http.post<Account>(url, {role, login, password }, this.httpOptions).pipe(            
+            catchError(err => {
+                this.handleError<Account>(`login`);
+                throw 'Wrong login or password';
+            })
         );
     }
 
-    logout() {   
-        this.userSubject.next(this.guest);
+    logout(currentApi: string = 'api/users/') {
         this.isHttpAvailable = false;
-        setTimeout(() => this.isHttpAvailable = true, 150);         
-        return this.http.post(this.usersLogoutUrl, null, this.httpOptions).pipe(            
+        setTimeout(() => this.isHttpAvailable = true, 150);  
+        let url = `${environment.apiUrl}/` + currentApi + 'logout';        
+        return this.http.post(url, null, this.httpOptions).pipe(            
             tap(() => this.alertSerivce.success(`logged out`)),
-            catchError(err => {
-                throw 'error in source. Details: ' + err;
-              }),
             catchError(err => {
                 this.handleError(`logout`);
                 throw err;
@@ -80,19 +47,25 @@ export class AccountService {
         );
     }
 
-    register(user: User) {
-       return this.http.post<User>(this.usersRegisterUrl, user, this.httpOptions).pipe(
-            tap((newUser: User) => 
-            {
-                this.alertSerivce.success((`Registration successful`));                
-            }),
-            catchError(this.handleError<User>(`register`))
-        );
+    register(account: Account, currentApi: string = 'api/users/') {  
+        if (account.password == account.confirmPassword){      
+            let url = `${environment.apiUrl}/` + currentApi + 'register';  
+            return this.http.post<Account>(url, account, this.httpOptions).pipe(
+                catchError(this.handleError<Account>(`register`))
+            );
+        }
+        throw Error("password not equal to confirmPassword");
     }
 
-    getServerUserInfo(){       
-       return this.http.get<User>(this.environmetUrl, this.httpOptions).pipe(              
-            catchError(this.handleError<User>(`getUserInfo`)))        
+    getAccountInfo(currentApi: string = 'api/users/'): Observable<any>{
+        if (this.isHttpAvailable){            
+            setTimeout(() => this.isHttpAvailable = true, 150);  
+            let url = `${environment.apiUrl}/` + currentApi;        
+            return this.http.get<Account>(url, this.httpOptions).pipe(              
+                catchError(this.handleError<Account>(`getAccountInfo`))
+            );    
+        } 
+        return of(null);  
     }
 
     private handleError<T>(operation = 'operation', result?: T) {
@@ -102,30 +75,15 @@ export class AccountService {
         };
     }
 
-    // update(id: number, params: string) {
-    //     return this.http.put(`${environment.apiUrl}/users/${id}`, params)
-    //         .pipe(map(x => {
-    //             // update stored user if the logged in user updated their own record
-    //             // if (id == this.userValue.id) {
-    //             //     // update local storage
-    //             //     const user = { ...this.userValue, ...params };
-    //             //     localStorage.setItem('user', JSON.stringify(user));
+    update(account: Account, currentApi: string = 'api/users/'): Observable<any>{
+        let url = `${environment.apiUrl}/` + currentApi;  
+        return this.http.put<Account>(url, account, this.httpOptions).pipe(            
+            catchError(this.handleError<any>('update Info'))
+        );
+    }
 
-    //             //     // publish updated user to subscribers
-    //             //     this.userSubject.next(user);
-    //             // }
-    //             return x;
-    //         }));
-    // }
-
-    // delete(login: string) {
-    //     return this.http.delete(`${environment.apiUrl}/users/${login}`)
-    //         .pipe(map(x => {
-    //             // auto logout if the logged in user deleted their own record
-    //             if (login == this.userValue.login) {
-    //                 this.logout();
-    //             }
-    //             return x;
-    //         }));
-    // }
+    delete(login: string, currentApi: string = 'api/users/') {
+        let url = `${environment.apiUrl}/` + currentApi;  
+        return this.http.delete(url);
+    }
 }

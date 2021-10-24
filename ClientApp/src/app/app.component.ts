@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { User } from './_models';
-import { AccountService } from './_services';
+import { UserService, AccountService } from './_services';
 import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -9,18 +9,32 @@ import { Router, ActivatedRoute } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Cars';
-  user?: User;
+    title = 'Cars';
+    user?: User;
+    isLoggedIn: boolean = false;
 
     constructor(
+      private userService: UserService,
       private accountService: AccountService,
       private router: Router
     ) 
     {
-      this.accountService.user.subscribe(x => this.user = x);
+      this.accountService.getAccountInfo().subscribe(
+        data => {
+          this.isLoggedIn = true;
+        }
+      )
+      this.userService.user.subscribe(x => this.user = x);
+      this.router.navigate(['/']);
+    }
+    
+    
+
+    login(){
+      this.router.navigate(['/account/login']);
     }
 
     logout() {
-      this.accountService.logout().subscribe(() => this.router.navigate(['/account/login']));
+      this.userService.logout().subscribe(() => this.router.navigate(['/account/login']));
     }
 }

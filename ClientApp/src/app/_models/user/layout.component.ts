@@ -10,11 +10,8 @@ export class LayoutComponent {
         private router: Router,
         private userService: UserService
     ) {
-        this.userService.userValue.subscribe(x => {
-            if (x !== undefined){
-                this.router.navigate(['/']);
-            }
-        })
-        
+        if (this.userService.userValue) {
+            this.router.navigate(['/']);
+        }
     }
 }

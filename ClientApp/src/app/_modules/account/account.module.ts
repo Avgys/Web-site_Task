@@ -17,6 +17,11 @@ import { RegisterComponent } from './register.component';
         LayoutComponent,
         LoginComponent,
         RegisterComponent
+    ],
+    exports:[
+        LayoutComponent,
+        LoginComponent,
+        RegisterComponent
     ]
 })
 export class AccountModule { }
