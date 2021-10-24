@@ -22,12 +22,8 @@ export class AlertComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.alertSubscription = this.alertService.onAlert(this.id)
             .subscribe(alert => {
-                // clear alerts when an empty alert is received
                 if (!alert.message) {
-                    // filter out alerts without 'keepAfterRouteChange' flag
                     this.alerts = this.alerts.filter(x => x.keepAfterRouteChange);
-
-                    // remove 'keepAfterRouteChange' flag on the rest
                     this.alerts.forEach(x => x.keepAfterRouteChange = false);
                     return;
                 }

@@ -4,5 +4,4 @@ export interface Account {
     password: string;    
     confirmPassword: string;
     phoneNumber: string;    
-    // token: string;
 }

@@ -54,11 +54,6 @@ export class AppComponent implements OnInit{
       // alert(RoleType.Admin.toString());
     }
 
-    login(){
-      this.router.navigate([`${this.portal}/account/login`]);      
-      // this.router.navigate(['/account/login']);
-    }
-
     logout() {
       this.userService.logout().subscribe(() => this.router.navigate([`${this.portal}/account/login`]));
       this.setUser();
