@@ -21,8 +21,7 @@ export class AccountService {
         private http: HttpClient,
         private alertSerivce: AlertService
     )
-    {          
-    }    
+    {}    
 
     login(role: string, login: string, password: string, currentApi: string) {   
         let url = `${environment.apiUrl}/` + currentApi + 'login'; 
@@ -57,10 +56,10 @@ export class AccountService {
         throw Error("password not equal to confirmPassword");
     }
 
-    getAccountInfo(currentApi: string, login: string, isCurrent : boolean ): Observable<Account[] | undefined>{
+    getAccountInfo(currentApi: string, login: string, options: string = ""): Observable<Account[] | undefined>{
         if (this.isHttpAvailable){            
-            setTimeout(() => this.isHttpAvailable = true, 150);  
-            let url = `${environment.apiUrl}/` + currentApi + login + `?isCurrent=${isCurrent}`;        
+            setTimeout(() => this.isHttpAvailable = true, 150);
+            let url = `${environment.apiUrl}/` + currentApi + login + options;        
             return this.http.get<Account[]>(url, this.httpOptions).pipe(              
                 catchError(this.handleError<Account[]>(`getAccountInfo`))
             );    
@@ -86,4 +85,18 @@ export class AccountService {
         let url = `${environment.apiUrl}/` + currentApi + login;  
         return this.http.delete(url);
     }
+
+    // getUsers(currentApi:string, count: number, offset: number){
+    //     if (this.isHttpAvailable){            
+    //         setTimeout(() => this.isHttpAvailable = true, 150);  
+    //         let url = `${environment.apiUrl}/` + currentApi + `?count=${count}&offset${offset}&isCurrent=false`; 
+                  
+    //         return this.http.get<Account[]>(url, this.httpOptions).pipe(              
+    //             catchError(this.handleError<Account[]>(`getAccountInfo`))
+    //         );    
+    //     }
+    //     else{
+    //         return of([]);
+    //     } 
+    // }
 }

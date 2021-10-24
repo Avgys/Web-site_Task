@@ -14,12 +14,7 @@ export class UserService {
     private roleName: string;    
     private userSubject: BehaviorSubject<User | undefined>;
     public user: Observable<User | undefined>;
-    // public readonly guest: User = 
-    //         {   name : "guest",
-    //             login : "guest",
-    //             password : "",
-    //             phoneNumber : "" 
-    //         }
+    public users: User[] | undefined;
 
     private role : RoleType | undefined = undefined;
     private currentApi: string;    
@@ -31,6 +26,7 @@ export class UserService {
         private accountService : AccountService 
     )
     {        
+        this.users = undefined;
         this.userSubject = new BehaviorSubject<User | undefined>(undefined);
         this.user = this.userSubject.asObservable();
         // if (this.role === undefined){
@@ -110,15 +106,20 @@ export class UserService {
 
     getUserInfo(login: string = "", isCurrent : boolean = true){       
         if (login == ""){
-            // login = this.userSubject.value.login;
-            return this.accountService.getAccountInfo(this.currentApi, login, isCurrent);    
+            return this.accountService.getAccountInfo(this.currentApi, login, `?isCurrent=${isCurrent}`).pipe(            
+                tap((_user) => 
+                {   if (_user !== undefined)
+                    this.userSubject.next(_user[0]);                
+                }));    
         }  
         else if(login.length > 0){
-            return this.accountService.getAccountInfo(this.currentApi, login, false); 
+            return this.accountService.getAccountInfo(this.currentApi, login,  `?isCurrent=false`).pipe(            
+                tap((_user) => 
+                {   if (_user !== undefined)
+                    this.userSubject.next(_user[0]);                
+                }));  
         }
         else{
-            // this.alertSerivce.error("Unauthenticated");
-            // throw Error("Unauthenticated");
             return of(undefined);
         }
     }
@@ -137,10 +138,18 @@ export class UserService {
 
     delete(login: string) {
         return this.accountService.delete(login, this.currentApi).pipe(map(x => {
-                if (login == this.userSubject.value?.login) {
-                    this.logout();
-                }
-                return x;
-            }));
+            if (login == this.userSubject.value?.login) {
+                this.logout();
+            }
+            return x;
+        }));
+    }
+
+    getUsers(count: number, offset: number){
+        let options = `?isCurrent=false&count=${count}&offset=${offset}`;
+        return this.accountService.getAccountInfo(this.currentApi, "", options).pipe(tap(x => {
+            this.users = x;
+            return x;
+        }));  
     }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { User } from './_models';
 import { UserService, AccountService } from './_services';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -9,13 +9,13 @@ import { RoleType } from '@app/_models';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
+export class AppComponent implements OnInit{
     title = 'Cars';
     user?: User;
     isLoggedIn: boolean = false;    
     showAppNavBar: boolean;    
-    portal: string;
-    role: RoleType;
+    portal: string = "";
+    role: RoleType = RoleType.User;
     roleAdmin: RoleType = RoleType.Admin;
     roleUser: RoleType = RoleType.User;
 
@@ -25,23 +25,20 @@ export class AppComponent {
       private router: Router
     ) 
     {   
-      this.showAppNavBar = true;   
-      this.userService.userValue.subscribe(
-        data => {
-          this.isLoggedIn = true;
-        }
-      )
-      this.userService.user.subscribe(x => this.user = x);
-      this.portal = "";
-      this.role = this.roleUser;
-      this.router.navigate(['/']);      
+      this.user = this.userService.lastUserValue;
+      this.showAppNavBar = true;  
+      this.setUser(); 
+      this.userService.userValue.subscribe(u => {
+        this.isLoggedIn = true;
+        this.user = u;
+      })      
     }
 
-    // public getRole(){
-    //   return this.userService.currRole;
-    // }
+    ngOnInit(){  
+        
+    }
     
-    setAdmin(){
+    public setAdmin(){
       this.router.navigate(['/admin']);
       this.userService.currRole = RoleType.Admin;
       this.role = RoleType.Admin;
@@ -64,5 +61,7 @@ export class AppComponent {
 
     logout() {
       this.userService.logout().subscribe(() => this.router.navigate([`${this.portal}/account/login`]));
+      this.setUser();
+      this.isLoggedIn = false;  
     }
 }

@@ -6,17 +6,21 @@ import { AdminRoutingModule } from '@app/_modules/adminAccount/admin-routing.mod
 import { LayoutComponent } from '@app/_modules/adminAccount/layout.component';
 import { LoginComponent } from '@app/_modules/adminAccount/login.component';
 import { RegisterComponent } from '@app/_modules/adminAccount/register.component';
+import { UserListComponent } from '@app/_modules/adminAccount/userList.component';
+
 
 @NgModule({
   imports: [
     CommonModule,    
     ReactiveFormsModule,
     AdminRoutingModule,
+    CommonModule
   ],
   declarations:[
     LayoutComponent,
     LoginComponent,
-    RegisterComponent
+    RegisterComponent,
+    UserListComponent
   ]
 })
 export class AdminModule { }

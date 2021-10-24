@@ -3,7 +3,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 import { UsersRoutingModule } from './users-routing.module';
-import { AccountModule } from '@app/_modules/userAccount/account.module';
+import { AdminModule } from '@app/_modules/adminAccount/admin.module';
 import { OrderListComponent } from './orderList.component'
 
 @NgModule({
@@ -11,11 +11,11 @@ import { OrderListComponent } from './orderList.component'
         CommonModule,
         ReactiveFormsModule,
         UsersRoutingModule,
-        AccountModule
+        AdminModule
     ],
     declarations: [
         OrderListComponent,
         // AddEditComponent
     ]
 })
-export class UsersModule { }
+export class AdminMo { }

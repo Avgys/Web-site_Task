@@ -5,7 +5,7 @@
     <div class="navbar-nav">
         <a class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
         <a class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setAdmin()">Admin</a>
-        <a *ngIf="!user" class="nav-item nav-link" routerLink="/account/login" (click)="login()">Login</a>
+        <a *ngIf="!user" class="nav-item nav-link" routerLink="/account/login">Login</a>
         <a *ngIf="user" class="nav-item nav-link" routerLink="/" (click)="logout()">Logout</a>
     </div>
   </nav>
@@ -13,9 +13,10 @@
 <ng-template #elseBlock>
   <nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="showAppNavBar">
     <div class="navbar-nav">
-        <a class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a> 
+        <a class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>        
+        <a *ngIf="user" class="nav-item nav-link" routerLink="/admin/users" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" >Users</a>
         <a class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setUser()">User</a>
-        <a *ngIf="!user" class="nav-item nav-link" routerLink="admin/account/login" (click)="login()">Login</a>
+        <a *ngIf="!user" class="nav-item nav-link" routerLink="admin/account/login">Login</a>
         <a *ngIf="user" class="nav-item nav-link" routerLink="admin/" (click)="logout()">Logout</a>
     </div>
   </nav>
