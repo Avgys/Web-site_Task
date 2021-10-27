@@ -113,7 +113,7 @@ namespace itechart.CarRental.Controllers
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role?.Name)
             };
             ClaimsIdentity id = new ClaimsIdentity(claims, "UserCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));            
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
         }
 
         [Route("logout")]
@@ -133,7 +133,8 @@ namespace itechart.CarRental.Controllers
             {
                 if (User.IsInRole("admin"))
                 {
-                    if (isCurrent) {
+                    if (isCurrent)
+                    {
                         Account admin = await _context.Admins.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
 
                         if (admin == null)
@@ -143,7 +144,7 @@ namespace itechart.CarRental.Controllers
                         else
                         {
                             return new Account[] { new Account {
-                                Name = admin.Name, Login = admin.Login, PhoneNumber = admin.PhoneNumber, RoleName = "admin"  
+                                Name = admin.Name, Login = admin.Login, PhoneNumber = admin.PhoneNumber, RoleName = "admin"
                             }};
                         }
                     }
@@ -167,9 +168,9 @@ namespace itechart.CarRental.Controllers
                     }
                     else
                     {
-                        return new Account[] { 
-                            new Account() { 
-                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = "user" 
+                        return new Account[] {
+                            new Account() {
+                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = "user"
                             }};
                     }
                 }
@@ -192,7 +193,7 @@ namespace itechart.CarRental.Controllers
                 if ((User.IsInRole("user") && HttpContext.User.Identity.Name == login) || User.IsInRole("admin"))
                 {
                     Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
-                    
+
 
                     if (user == null)
                     {
