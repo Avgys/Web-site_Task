@@ -5,8 +5,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, tap, throwIfEmpty } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AlertService, AccountService } from '.';
-import { User, Account, Role } from '../_models';
-import { RoleType } from '@app/_models/role';
+import { User, Account, RoleType } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -28,26 +27,20 @@ export class UserService {
     {        
         this.users = undefined;
         this.userSubject = new BehaviorSubject<User | undefined>(undefined);
-        this.user = this.userSubject.asObservable();
-        // if (this.role === undefined){
-        //     this.role = RoleType.User;     
-        //     this.roleName = "user";       
-        //     this.currentApi = 'api/accounts/';  
-        // }        
-            
+        this.user = this.userSubject.asObservable();            
         this.role = RoleType.User;  
-        this.roleName = "user";      
+        this.roleName = 'user';      
         this.currentApi = 'api/accounts/';
     }
 
     public set currRole(role: RoleType){        
         this.role = role;
         if(this.role == RoleType.User){ 
-            this.roleName = "user";
+            this.roleName = 'user';
             this.currentApi = 'api/accounts/';  
         }
         else if(this.role == RoleType.Admin){ 
-            this.roleName = "admin";                      
+            this.roleName = 'admin';                      
             this.currentApi = 'api/accounts/';
         }
     }
@@ -104,16 +97,16 @@ export class UserService {
         );
     }
 
-    getUserInfo(login: string = "", isCurrent : boolean = true){       
+    getUserInfo(login: string = this.userSubject.value?.login ?? "", isCurrent : boolean = true){       
         if (login == ""){
-            return this.accountService.getAccountInfo(this.currentApi, login, `?isCurrent=${isCurrent}`).pipe(            
+            return this.accountService.getAccountInfo(this.currentApi, login).pipe(            
                 tap((_user) => 
                 {   if (_user !== undefined)
                     this.userSubject.next(_user[0]);                
                 }));    
         }  
         else if(login.length > 0){
-            return this.accountService.getAccountInfo(this.currentApi, login,  `?isCurrent=false`).pipe(            
+            return this.accountService.getAccountInfo(this.currentApi, login).pipe(            
                 tap((_user) => 
                 {   if (_user !== undefined)
                     this.userSubject.next(_user[0]);                
@@ -146,7 +139,7 @@ export class UserService {
     }
 
     getUsers(count: number, offset: number){
-        let options = `?isCurrent=false&count=${count}&offset=${offset}`;
+        let options = `?count=${count}&offset=${offset}`;
         return this.accountService.getAccountInfo(this.currentApi, "", options).pipe(tap(x => {
             this.users = x;
             return x;

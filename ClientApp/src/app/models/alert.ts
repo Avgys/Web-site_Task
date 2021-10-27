@@ -9,7 +9,7 @@ export class Alert {
     constructor(init?:Partial<Alert>){    
         this.id = 'default-alert';    
         this.type = AlertType.Info;
-        this.message = "";
+        this.message = '';
         this.autoClose = true;
         this.keepAfterRouteChange = false;
         this.fade = false;

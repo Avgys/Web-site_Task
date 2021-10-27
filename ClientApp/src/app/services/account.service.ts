@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AlertService } from '.';
-import { Account } from '../_models';
+import { Account } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -68,9 +68,8 @@ export class AccountService {
     }
 
     private handleError<T>(operation = 'operation', result?: T) {
-        return (error: any): Observable<T> => {         
-        //  this.alertSerivce.error(error);
-         return of(result as T);
+        return (error: any): Observable<T> => {    
+            return of(result as T);
         };
     }
 
@@ -85,18 +84,4 @@ export class AccountService {
         let url = `${environment.apiUrl}/` + currentApi + login;  
         return this.http.delete(url);
     }
-
-    // getUsers(currentApi:string, count: number, offset: number){
-    //     if (this.isHttpAvailable){            
-    //         setTimeout(() => this.isHttpAvailable = true, 150);  
-    //         let url = `${environment.apiUrl}/` + currentApi + `?count=${count}&offset${offset}&isCurrent=false`; 
-                  
-    //         return this.http.get<Account[]>(url, this.httpOptions).pipe(              
-    //             catchError(this.handleError<Account[]>(`getAccountInfo`))
-    //         );    
-    //     }
-    //     else{
-    //         return of([]);
-    //     } 
-    // }
 }

@@ -11,13 +11,7 @@ namespace itechart.CarRental.DbContexts
 
         public CarsDBContext(DbContextOptions<CarsDBContext> options) : base(options)
         {
-            Database.EnsureDeleted();
             Database.EnsureCreated();
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<User>().Ignore(b => b.RoleName);
         }
     }
 }

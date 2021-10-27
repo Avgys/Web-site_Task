@@ -1,20 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from './_models';
-import { UserService, AccountService } from './_services';
+import { User } from './models';
+import { UserService, AccountService } from './services';
 import { Router, ActivatedRoute } from '@angular/router';
-import { RoleType } from '@app/_models';
+import { RoleType } from '@app/models';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit{
+export class AppComponent{
     title = 'Cars';
     user?: User;
     isLoggedIn: boolean = false;    
     showAppNavBar: boolean;    
-    portal: string = "";
+    portal: string = '';
     role: RoleType = RoleType.User;
     roleAdmin: RoleType = RoleType.Admin;
     roleUser: RoleType = RoleType.User;
@@ -33,25 +33,19 @@ export class AppComponent implements OnInit{
         this.user = u;
       })      
     }
-
-    ngOnInit(){  
-        
-    }
     
     public setAdmin(){
       this.router.navigate(['/admin']);
       this.userService.currRole = RoleType.Admin;
       this.role = RoleType.Admin;
-      this.portal = "/admin";
-      // alert(RoleType.Admin.toString());
+      this.portal = '/admin';
     }
 
     setUser(){
       this.router.navigate(['/']);
       this.userService.currRole = RoleType.User;
       this.role = RoleType.User;
-      this.portal = "";
-      // alert(RoleType.Admin.toString());
+      this.portal = '';
     }
 
     logout() {

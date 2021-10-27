@@ -2,9 +2,11 @@
 using itechart.CarRental.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -17,11 +19,12 @@ namespace itechart.CarRental.Controllers
     public class AccountController : ControllerBase
     {
         private readonly CarsDBContext _context;
+        private readonly List<Role> Roles;
 
         public AccountController(CarsDBContext context)
         {
             _context = context;
-
+            Roles = _context.Roles.ToList();
         }
 
         [Route("login")]
@@ -37,8 +40,13 @@ namespace itechart.CarRental.Controllers
                 if (user != null)
                 {
                     user.Role = await _context.Roles.FindAsync(user.RoleId);
-                    await Authenticate(user);
-                    Account result = new Account() { Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber };
+                    await AuthenticateAsync(user);
+                    Account result = new Account()
+                    {
+                        Name = user.Name,
+                        Login = user.Login,
+                        PhoneNumber = user.PhoneNumber
+                    };
                     return Ok(result);
                 }
                 else
@@ -56,8 +64,13 @@ namespace itechart.CarRental.Controllers
                 if (admin != null)
                 {
                     admin.Role = await _context.Roles.FindAsync(admin.RoleId);
-                    await Authenticate(admin);
-                    Account result = new Account() { Name = admin.Name, Login = admin.Login, PhoneNumber = admin.PhoneNumber };
+                    await AuthenticateAsync(admin);
+                    Account result = new Account()
+                    {
+                        Name = admin.Name,
+                        Login = admin.Login,
+                        PhoneNumber = admin.PhoneNumber
+                    };
                     return Ok(result);
                 }
                 else
@@ -76,14 +89,14 @@ namespace itechart.CarRental.Controllers
         public async Task<ActionResult<Account>> Register(RegisterAccountModel model)
         {
             User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == model.Login);
-            Role role = _context.Roles.FirstOrDefault(x => x.Name == model.Role);
+            Role role = await _context.Roles.FirstOrDefaultAsync(x => x.Name == model.Role);
             if (role == null)
             {
                 return BadRequest($"No such role exists");
             }
             if (user == null)
             {
-                User newMember = new User
+                User newMember = new User()
                 {
                     Login = model.Login,
                     Name = model.Name,
@@ -95,17 +108,17 @@ namespace itechart.CarRental.Controllers
 
                 _context.Users.Add(newMember);
                 await _context.SaveChangesAsync();
-                await Authenticate(newMember);
+                await AuthenticateAsync(newMember);
 
                 return CreatedAtAction("GetUserAccount", "Success");
             }
             else
             {
-                return BadRequest($"Login {model.Login} already used");
+                return Conflict($"Login {model.Login} already used");
             }
         }
 
-        private async Task Authenticate(Account user)
+        private async Task AuthenticateAsync(Account user)
         {
             List<Claim> claims = new List<Claim>
             {
@@ -124,196 +137,185 @@ namespace itechart.CarRental.Controllers
             return NoContent();
         }
 
-        //private SafetyAccount TransformUserToSafetyAccount(User )
+        private UserInfo ConvertAccountToUserInfo(Account u)
+        {
+            string roleName = Roles.Find(r => r.Id == u.RoleId).Name;
+            return new UserInfo()
+            {
+                Login = u.Login,
+                Name = u.Name,
+                PhoneNumber = u.PhoneNumber,
+                RoleName = roleName
+            };
+        }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetUserAccount([FromQuery] int offset, [FromQuery] int count, [FromQuery] bool isCurrent = true)
+        [Route("users")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<IEnumerable<UserInfo>>> GetUsersAccounts(
+            [FromQuery] int offset,
+            [FromQuery] int count
+        )
         {
-            if (User.Identity.IsAuthenticated)
+            List<User> userList = await _context.Users.Skip(offset).Take(count).ToListAsync();
+
+            if (userList == null)
             {
-                if (User.IsInRole("admin"))
-                {
-                    if (isCurrent)
-                    {
-                        Account admin = await _context.Admins.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+                return NotFound();
+            }
 
-                        if (admin == null)
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            return new Account[] { new Account {
-                                Name = admin.Name, Login = admin.Login, PhoneNumber = admin.PhoneNumber, RoleName = "admin"
-                            }};
-                        }
-                    }
-                    else
-                    {
-                        Account[] users = await _context.Users.ToArrayAsync();
-                        if (users == null)
-                        {
-                            return NotFound();
-                        }
-                        return users;
-                    }
-                }
-                else if (User.IsInRole("user"))
-                {
-                    Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+            List<UserInfo> users = new List<UserInfo>(count);
 
-                    if (user == null)
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        return new Account[] {
-                            new Account() {
-                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = "user"
-                            }};
-                    }
-                }
-                else
+            for (int i = 0; i < count; i++)
+            {
+                users.Add(new UserInfo()
                 {
-                    return BadRequest("Wrong role");
-                }
+                    Login = userList[i].Login,
+                    Name = userList[i].Name,
+                    PhoneNumber = userList[i].PhoneNumber,
+                    RoleName = Roles.Find(r => r.Id == userList[i].Role.Id).Name
+                });
+            }
+
+            return users.ToList();
+        }
+
+        [HttpGet]
+        [Route("admin")]
+        [Authorize(Roles = "admin")]
+        public async Task<ActionResult<IEnumerable<AdminInfo>>> GetAdminAccount()
+        {
+            Admin admin = await _context.Admins.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+
+            if (admin == null)
+            {
+                return NotFound();
             }
             else
             {
-                return Unauthorized();
+                Role role = Roles.Find(r => r.Id == admin.RoleId);
+                return new AdminInfo[] 
+                {
+                    new AdminInfo() 
+                    {
+                        Name = admin.Name,
+                        Login = admin.Login,
+                        PhoneNumber = admin.PhoneNumber,
+                        RentalId = admin.RentalId,
+                        RoleName = role.Name
+                    }
+                };
             }
         }
 
         [HttpGet("{login}")]
-        public async Task<ActionResult<IEnumerable<Account>>> GetUserAccount(string login)
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserInfo>>> GetUserAccount(string login)
         {
-            if (User.Identity.IsAuthenticated)
+            if ((User.IsInRole("user") && HttpContext.User.Identity.Name == login) || User.IsInRole("admin"))
             {
-                if ((User.IsInRole("user") && HttpContext.User.Identity.Name == login) || User.IsInRole("admin"))
+                Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+
+                if (user == null)
                 {
-                    Account user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
-
-
-                    if (user == null)
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        Role role = await _context.Roles.FindAsync(user.RoleId);
-                        return new Account[] {
-                            new Account() {
-                                Name = user.Name, Login = user.Login, PhoneNumber = user.PhoneNumber, RoleName = role.Name
-                            }};
-                    }
+                    return NotFound();
                 }
                 else
                 {
-                    return BadRequest("Not accessed");
+                    Role role = Roles.Find(r => r.Id == user.RoleId);
+                    return new UserInfo[] 
+                    {
+                        new UserInfo() 
+                        {
+                            Name = user.Name,
+                            Login = user.Login,
+                            PhoneNumber = user.PhoneNumber,
+                            RoleName = role.Name
+                        }
+                    };
                 }
             }
             else
             {
-                return Unauthorized();
+                return Forbid();
             }
         }
 
         [HttpPut("{login}")]
         public async Task<IActionResult> PutUserAccount(string login, Account Account)
         {
-            if (User.Identity.IsAuthenticated)
+            if ((User.IsInRole("user") && User.Identity.Name == login) || User.IsInRole("admin"))
             {
-                if ((User.IsInRole("user") && User.Identity.Name == login) || User.IsInRole("admin"))
+                User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
+                if (user == null)
                 {
-                    User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == HttpContext.User.Identity.Name);
-                    if (user == null)
+                    return NotFound();
+                }
+
+                user.Name = Account.Name ?? user.PhoneNumber;
+                user.PhoneNumber = Account.PhoneNumber ?? user.PhoneNumber;
+                user.Password = Account.Password ?? user.Password;
+                _context.Entry(User).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!(await UserAccountExistsAsync(user.Login)))
                     {
                         return NotFound();
                     }
-                    user.Name = Account.Name ?? user.PhoneNumber;
-                    user.PhoneNumber = Account.PhoneNumber ?? user.PhoneNumber;
-                    user.Password = Account.Password ?? user.Password;
-                    //user.Login = Account.Login ?? user.Login;
-                    _context.Entry(User).State = EntityState.Modified;
-
-                    try
+                    else
                     {
-                        await _context.SaveChangesAsync();
+                        throw;
                     }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!UserAccountExists(user.Login))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
-                }
-                else
-                {
-                    return BadRequest("Wrong role");
                 }
             }
             else
             {
-                return Unauthorized();
+                return StatusCode(StatusCodes.Status403Forbidden);
             }
 
             return NoContent();
         }
 
         [HttpDelete("{login}")]
+        [Authorize("admin")]
         public async Task<IActionResult> DeleteUserAccount(string login)
         {
-            if (User.Identity.IsAuthenticated)
+            User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login);
+
+            if (user == null)
             {
-                if (User.IsInRole("user") || User.IsInRole("admin"))
+                return NotFound();
+            }
+
+            _context.Users.Remove(user);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!(await UserAccountExistsAsync(user.Login)))
                 {
-                    User user = await _context.Users.FirstOrDefaultAsync(u => u.Login == login);
-
-                    if (user == null)
-                    {
-                        return NotFound();
-                    }
-
-                    _context.Users.Remove(user);
-
-                    try
-                    {
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (DbUpdateConcurrencyException)
-                    {
-                        if (!UserAccountExists(user.Login))
-                        {
-                            return NotFound();
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
+                    return NotFound();
                 }
                 else
                 {
-                    return BadRequest("Wrong role");
+                    throw;
                 }
-            }
-            else
-            {
-                return Unauthorized();
             }
 
             return NoContent();
         }
 
-        private bool UserAccountExists(string login)
+        private async Task<bool> UserAccountExistsAsync(string login)
         {
-            return _context.Users.Any(e => e.Login == login);
+            return await _context.Users.AnyAsync(e => e.Login == login);
         }
     }
 }

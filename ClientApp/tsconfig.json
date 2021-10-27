@@ -5,9 +5,9 @@
     "baseUrl": "./",
     "paths": {
       "@app/*": ["src/app/*"],
-      "@services/*": ["src/app/_services/*"],      
-      "@modules/*": ["src/app/_modules/*"],
-      "@components/*": ["src/app/_components/*"],
+      "@services/*": ["src/app/services/*"],      
+      "@modules/*": ["src/app/modules/*"],
+      "@components/*": ["src/app/components/*"],
     },
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,

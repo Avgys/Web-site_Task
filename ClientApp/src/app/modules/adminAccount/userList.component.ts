@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { first } from 'rxjs/operators';
 
-import { UserService } from '@services/.';
-import { User } from '@app/_models';
+import { UserService } from '@app/services';
+import { User } from '@app/models';
 
 @Component({ templateUrl: 'userList.component.html' })
 export class UserListComponent implements OnInit {

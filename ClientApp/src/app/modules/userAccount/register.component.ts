@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
 
-import { AccountService, AlertService, UserService } from '@app/_services';
+import { AccountService, AlertService, UserService } from '@app/services';
 
 @Component({ templateUrl: 'register.component.html' })
 export class RegisterComponent implements OnInit {
@@ -40,7 +40,7 @@ export class RegisterComponent implements OnInit {
             this.submitted = false;
             return;
         }
-
+        this.form.value.Role = 'user';
         this.loading = true;
         this.userService.register(this.form.value)
             .pipe(first())

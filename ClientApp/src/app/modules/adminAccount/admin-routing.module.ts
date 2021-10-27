@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { LayoutComponent } from '@app/_modules/adminAccount/layout.component';
-import { LoginComponent } from '@app/_modules/adminAccount/login.component';
-import { RegisterComponent } from '@app/_modules/adminAccount/register.component';
-import { UserListComponent } from '@app/_modules/adminAccount/userList.component';
-import { HomeComponent } from '@app/_pages/home';
+import { LayoutComponent } from '@app/modules/adminAccount/layout.component';
+import { LoginComponent } from '@app/modules/adminAccount/login.component';
+import { RegisterComponent } from '@app/modules/adminAccount/register.component';
+import { UserListComponent } from '@app/modules/adminAccount/userList.component';
+import { HomeComponent } from '@app/pages/home';
 
 const routes: Routes = [
     

@@ -5,8 +5,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HomeComponent } from './_pages/home';
-import { AlertComponent } from './_components/alert';
+import { HomeComponent } from './pages/home';
+import { AlertComponent } from './components/alert';
 
 @NgModule({
   declarations: [
