@@ -5,74 +5,87 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, tap, throwIfEmpty } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AlertService, AccountService } from '.';
-import { User, Account, RoleType } from '../models';
+import { User, Account, RemoteAccount, RoleType } from '../models';
 
 @Injectable({ providedIn: 'root' })
-export class UserService {
-
-    private roleName: string;    
-    private userSubject: BehaviorSubject<User | undefined>;
-    public user: Observable<User | undefined>;
-    public users: User[] | undefined;
-
-    private role : RoleType | undefined = undefined;
+export class UserService {  
+    private userSubject: BehaviorSubject<Account | undefined>;
+    public user: Observable<Account | undefined>;
+    public users: Account[] | undefined;
+    private roleType : RoleType;
     private currentApi: string;    
 
     constructor(
         private router: Router,
         private http: HttpClient,
         private alertSerivce: AlertService,
-        private accountService : AccountService 
+        private accountService : AccountService
     )
-    {        
+    {   
         this.users = undefined;
-        this.userSubject = new BehaviorSubject<User | undefined>(undefined);
-        this.user = this.userSubject.asObservable();            
-        this.role = RoleType.User;  
-        this.roleName = 'user';      
+        this.userSubject = new BehaviorSubject<Account | undefined>(undefined);
+        this.user = this.userSubject.asObservable();     
+        this.roleType = RoleType.User;   
         this.currentApi = 'api/accounts/';
+        if (localStorage.getItem('user') !== null){
+            let user: Account = JSON.parse(localStorage.getItem('user') ?? 'undefined');
+            this.roleType = user.role;
+            this.getUserInfo(user.login ?? '').subscribe(x => {
+                if(x !== undefined)   {
+                        this.userSubject.next(x[0]);
+                    }   
+                    else{     
+                        this.userSubject.next(undefined);
+                    }
+            })
+        }
     }
 
-    public set currRole(role: RoleType){        
-        this.role = role;
-        if(this.role == RoleType.User){ 
-            this.roleName = 'user';
-            this.currentApi = 'api/accounts/';  
-        }
-        else if(this.role == RoleType.Admin){ 
-            this.roleName = 'admin';                      
-            this.currentApi = 'api/accounts/';
+    roleTypeToString(roleType: RoleType = this.roleType): string {
+        if (roleType == RoleType.Admin){
+            return 'admin';
+        }else if(roleType == RoleType.User){            
+            return 'user';
+        }else{
+            return 'No role'
         }
     }
 
-    public get currRole(){
-        return this.currRole;
+    public set currRoleType(roleType: RoleType){        
+        this.roleType = roleType;
+    }
+
+    public get currRole(): RoleType{
+        return this.userSubject.value?.role ?? this.roleType ?? RoleType.User;
     }
 
     public get webApi(){
         return this.currentApi;
     }
 
-    public get userValue(): Observable<User | undefined> {        
-        this.getUserInfo().subscribe(x =>  {
-            if(x !== undefined)   {
-               this.userSubject.next(x[0]);
-            }   
-            else{     
-                this.userSubject.next(undefined);
-            }
-        });      
-        return this.user;
+    public get userValue(): Observable<Account | undefined> { 
+        if (null !== (this.userSubject.value?.login ?? localStorage.getItem('user'))){               
+            this.getUserInfo(this.userSubject.value?.login ?? JSON.parse(localStorage.getItem('user') ?? '').login).subscribe(x =>  {
+                if(x !== undefined)   {
+                this.userSubject.next(x[0]);
+                }   
+                else{     
+                    this.userSubject.next(undefined);
+                }
+            });                
+            return this.user;
+        }else{
+            return of(undefined);
+        } 
     }
 
-    public get lastUserValue(): User | undefined { 
+    public get lastUserValue(): Account | undefined { 
         return this.userSubject.value;
     }
 
     login(login: string, password: string) { 
-        localStorage.setItem('login', login);   
-        return this.accountService.login(this.roleName, login, password, this.currentApi).pipe(            
-            tap((_user: User) => 
+        return this.accountService.login(this.roleTypeToString(), login, password, this.currentApi).pipe(            
+            tap((_user: Account) => 
             {   
                 this.userSubject.next(_user);                
             })
@@ -80,16 +93,16 @@ export class UserService {
     }
 
     logout() {      
-        localStorage.removeItem('login');   
+        localStorage.removeItem('user');     
         this.userSubject.next(undefined);
         return this.accountService.logout(this.currentApi).pipe(            
             tap(() => this.alertSerivce.success(`logged out`))
         );
     }
 
-    register(user: Account) {
+    register(user: RemoteAccount) {
         return this.accountService.register(user, this.currentApi).pipe(
-            tap((newUser: User) => 
+            tap((newUser: Account) => 
             {
                 this.alertSerivce.success((`Registration successful`));   
                 this.userSubject.next(newUser);          
@@ -97,7 +110,7 @@ export class UserService {
         );
     }
 
-    getUserInfo(login: string = this.userSubject.value?.login ?? "", isCurrent : boolean = true){       
+    getUserInfo(login: string = this.userSubject.value?.login ?? ""){       
         if (login == ""){
             return this.accountService.getAccountInfo(this.currentApi, login).pipe(            
                 tap((_user) => 
@@ -119,7 +132,7 @@ export class UserService {
 
     update(user: Account): Observable<any>{
         return this.accountService.update(user, this.currentApi).pipe(
-            tap((newUser: User) => 
+            tap((newUser: Account) => 
             {
                 if(user.login == this.userSubject.value?.login){
                     this.alertSerivce.success((`Registration successful`));   
@@ -140,7 +153,7 @@ export class UserService {
 
     getUsers(count: number, offset: number){
         let options = `?count=${count}&offset=${offset}`;
-        return this.accountService.getAccountInfo(this.currentApi, "", options).pipe(tap(x => {
+        return this.accountService.getAccountInfo(`${this.currentApi}users`, "", options).pipe(tap(x => {
             this.users = x;
             return x;
         }));  

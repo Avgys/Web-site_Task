@@ -1,12 +1,11 @@
 ﻿using itechart.CarRental.DbContexts;
-using itechart.CarRental.Models;
+using itechart.CarRental.Models.Accounts;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -41,11 +40,14 @@ namespace itechart.CarRental.Controllers
                 {
                     user.Role = await _context.Roles.FindAsync(user.RoleId);
                     await AuthenticateAsync(user);
-                    Account result = new Account()
+                    UserInfo result = new UserInfo()
                     {
                         Name = user.Name,
                         Login = user.Login,
-                        PhoneNumber = user.PhoneNumber
+                        PhoneNumber = user.PhoneNumber,
+                        IsConfirmed = user.IsConfirmed,
+                        RoleName = user.Role.Name
+
                     };
                     return Ok(result);
                 }
@@ -64,12 +66,14 @@ namespace itechart.CarRental.Controllers
                 if (admin != null)
                 {
                     admin.Role = await _context.Roles.FindAsync(admin.RoleId);
-                    await AuthenticateAsync(admin);
-                    Account result = new Account()
+                    await AuthenticateAsync(admin); 
+                    AdminInfo result = new AdminInfo()
                     {
                         Name = admin.Name,
                         Login = admin.Login,
-                        PhoneNumber = admin.PhoneNumber
+                        PhoneNumber = admin.PhoneNumber,
+                        RentalId = admin.RentalId,
+                        RoleName = admin.Role.Name,
                     };
                     return Ok(result);
                 }
@@ -157,7 +161,7 @@ namespace itechart.CarRental.Controllers
             [FromQuery] int count
         )
         {
-            List<User> userList = await _context.Users.Skip(offset).Take(count).ToListAsync();
+            List<User> userList = await _context.Users.OrderBy(u => u.Login).Skip(offset).Take(count).ToListAsync();
 
             if (userList == null)
             {
@@ -166,7 +170,7 @@ namespace itechart.CarRental.Controllers
 
             List<UserInfo> users = new List<UserInfo>(count);
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < userList.Count; i++)
             {
                 users.Add(new UserInfo()
                 {

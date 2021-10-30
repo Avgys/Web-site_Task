@@ -1,26 +1,24 @@
 
-<div *ngIf="role == roleUser; then thenBlock else elseBlock"></div>
-<ng-template #thenBlock>
-  <nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="showAppNavBar">
-    <div class="navbar-nav">
+<nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="showAppNavBar">
+  <div class="navbar-nav">
+    <div *ngIf="role == roleUser; then thenBlock else elseBlock"></div>
+      <ng-template #thenBlock>  
         <a class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-        <a class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setAdmin()">Admin</a>
+        <a class="nav-item nav-link" routerLink="/rental" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Rental Point</a>
+        <a *ngIf="!user" class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setAdmin()">Switch to Admin</a>
         <a *ngIf="!user" class="nav-item nav-link" routerLink="/account/login">Login</a>
         <a *ngIf="user" class="nav-item nav-link" routerLink="/" (click)="logout()">Logout</a>
-    </div>
-  </nav>
-</ng-template>
-<ng-template #elseBlock>
-  <nav class="navbar navbar-expand navbar-dark bg-dark" *ngIf="showAppNavBar">
-    <div class="navbar-nav">
+    </ng-template>
+    <ng-template #elseBlock>
         <a class="nav-item nav-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>        
         <a *ngIf="user" class="nav-item nav-link" routerLink="/admin/users" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" >Users</a>
-        <a class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setUser()">User</a>
+        <a *ngIf="!user" class="nav-item nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="setUser()">Switch to User</a>
         <a *ngIf="!user" class="nav-item nav-link" routerLink="admin/account/login">Login</a>
         <a *ngIf="user" class="nav-item nav-link" routerLink="admin/" (click)="logout()">Logout</a>
-    </div>
-  </nav>
-</ng-template>
+    
+    </ng-template>
+  </div>
+</nav>
 
 <div class="app-container" [ngClass]="{ 'bg-light': user }">
   <alert></alert>

@@ -49,6 +49,7 @@ export class LoginComponent implements OnInit {
             .pipe(first())
             .subscribe(                  
                 data => {
+                    localStorage.setItem('user', JSON.stringify(data));  
                     this.alertService.success(`logged by login=${data.login}`);
                     this.router.navigate([this.returnUrl]);
                 },              

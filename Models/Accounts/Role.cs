@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace itechart.CarRental.Models {
-
+namespace itechart.CarRental.Models.Accounts
+{
     public class Role
     {
         public int Id { get; set; }

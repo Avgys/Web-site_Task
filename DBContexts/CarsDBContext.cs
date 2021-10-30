@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using itechart.CarRental.Models;
+using itechart.CarRental.Models.Accounts;
+using itechart.CarRental.Models.CarRental;
 
 namespace itechart.CarRental.DbContexts
 {
@@ -13,6 +14,8 @@ namespace itechart.CarRental.DbContexts
         {
             Database.EnsureCreated();
         }
+
+        public DbSet<itechart.CarRental.Models.CarRental.CarRentalPoint> CarRentalPoint { get; set; }
     }
 }
 

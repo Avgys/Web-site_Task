@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { AlertService } from '.';
-import { Account } from '../models';
+import { Account, RemoteAccount } from '../models/index';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -46,7 +46,7 @@ export class AccountService {
         );
     }
 
-    register(account: Account, currentApi: string) {  
+    register(account: RemoteAccount, currentApi: string) {  
         if (account.password == account.confirmPassword){      
             let url = `${environment.apiUrl}/` + currentApi + 'register';  
             return this.http.post<Account>(url, account, this.httpOptions).pipe(
@@ -59,7 +59,7 @@ export class AccountService {
     getAccountInfo(currentApi: string, login: string, options: string = ""): Observable<Account[] | undefined>{
         if (this.isHttpAvailable){            
             setTimeout(() => this.isHttpAvailable = true, 150);
-            let url = `${environment.apiUrl}/` + currentApi + login + options;        
+            let url = `${environment.apiUrl}/` + currentApi + login + options;
             return this.http.get<Account[]>(url, this.httpOptions).pipe(              
                 catchError(this.handleError<Account[]>(`getAccountInfo`))
             );    

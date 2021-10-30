@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './pages/home';
 import { AlertComponent } from './components/alert';
+import { CarRentalPointModule } from '@app/modules/car-rental/car-rental.module';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { AlertComponent } from './components/alert';
     BrowserModule,
     AppRoutingModule,
     ReactiveFormsModule,
-    HttpClientModule
+    HttpClientModule,
+    CarRentalPointModule
   ],
   providers: [],
   bootstrap: [AppComponent]

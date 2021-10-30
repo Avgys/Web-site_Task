@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { User } from './models';
+import { User, Account } from './models';
 import { UserService, AccountService } from './services';
 import { Router, ActivatedRoute } from '@angular/router';
 import { RoleType } from '@app/models';
@@ -11,11 +11,11 @@ import { RoleType } from '@app/models';
 })
 export class AppComponent{
     title = 'Cars';
-    user?: User;
+    user: Account | undefined;
     isLoggedIn: boolean = false;    
     showAppNavBar: boolean;    
     portal: string = '';
-    role: RoleType = RoleType.User;
+    role: RoleType | undefined;
     roleAdmin: RoleType = RoleType.Admin;
     roleUser: RoleType = RoleType.User;
 
@@ -26,25 +26,29 @@ export class AppComponent{
     ) 
     {   
       this.user = this.userService.lastUserValue;
-      this.showAppNavBar = true;  
-      this.setUser(); 
+      this.showAppNavBar = true;
       this.userService.userValue.subscribe(u => {
         this.isLoggedIn = true;
         this.user = u;
+        this.role = this.userService.currRole;
       })      
+    }    
+
+    updateAccountInfo(account: Account | undefined) {
+      this.user = account;
     }
-    
-    public setAdmin(){
+
+    setAdmin(){
       this.router.navigate(['/admin']);
-      this.userService.currRole = RoleType.Admin;
       this.role = RoleType.Admin;
+      this.userService.currRoleType = this.role;
       this.portal = '/admin';
     }
 
     setUser(){
       this.router.navigate(['/']);
-      this.userService.currRole = RoleType.User;
       this.role = RoleType.User;
+      this.userService.currRoleType = this.role;
       this.portal = '';
     }
 

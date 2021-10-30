@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace itechart.CarRental.Models
+namespace itechart.CarRental.Models.Accounts
 {	
 	public class Account
 	{

@@ -19,7 +19,8 @@ export class LoginComponent implements OnInit {
         private router: Router,
         private accountService: AccountService,
         private alertService: AlertService,
-        private userService: UserService
+        private userService: UserService,
+        private appComponent: AppComponent
     ) { 
         this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
         this.form = this.formBuilder.group({
@@ -49,9 +50,10 @@ export class LoginComponent implements OnInit {
         this.userService.login(this.form.controls.login.value, this.form.controls.password.value)
             .pipe(first())
             .subscribe(                  
-                data => {
+                data => {      
+                    localStorage.setItem('user', JSON.stringify(data));       
                     this.alertService.success(`logged by login=${data.login}`);
-                    this.router.navigate([this.returnUrl]);                    
+                    this.router.navigate([this.returnUrl]);              
                 },              
                 error => {
                     this.loading = false;                    

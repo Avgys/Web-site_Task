@@ -1,6 +1,6 @@
 using System;
 
-namespace itechart.CarRental.Models
+namespace itechart.CarRental.Models.Accounts
 {	
 	public class User : Account
 	{
